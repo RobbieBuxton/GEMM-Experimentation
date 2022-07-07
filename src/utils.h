@@ -1,0 +1,1 @@
+extern void print_matrix(double *matrix,int n,int m);
