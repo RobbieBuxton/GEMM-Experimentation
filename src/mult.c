@@ -13,24 +13,42 @@ int main (int argc, char* argv[] ) {
 
     //Dimentions of the matrix's 
     // A = i*j, B = j*k, C = i*k-
-    int i = 5000;
-    int j = 5000;
-    int k = 5000;
+    int i = 1000;
+    int j = 1000;
+    int k = 1000;
   
     // Allocate array storing matrices 
-    float *A = malloc(sizeof(float)*i*j);
-    float *B = malloc(sizeof(float)*j*k);
-    float *C = malloc(sizeof(float)*i*k);
+    // float *A = malloc(sizeof(float)*i*j);
+    // float *B = malloc(sizeof(float)*j*k);
+    // float *gemm_C = malloc(sizeof(float)*i*k);
+		// float *devito_C = malloc(sizeof(float)*i*k);
     
-    fill_matrix(A,i,j);
-    fill_matrix(B,j,k);
+    // fill_matrix(A,i,j);
+    // fill_matrix(B,j,k);
 
-    struct dataobj A_vec = {.data = A};
-    struct dataobj B_vec = {.data = B};
-    struct dataobj C_vec = {.data = C};
-    struct profiler timers = {.section0 = 0};
+    // struct dataobj A_vec = {.data = A, .size = malloc(sizeof(long)*2)};
+    // struct dataobj B_vec = {.data = B, .size = malloc(sizeof(long)*2)};
+    // struct dataobj gemm_C_vec = {.data = gemm_C, .size = malloc(sizeof(long)*2)};
+		// struct dataobj devito_C_vec = {.data = devito_C, .size = malloc(sizeof(long)*2)};
+    
+		struct dataobj A_vec, B_vec, gemm_C_vec, devito_C_vec;
+		init_vector(&A_vec,i,j);
+		init_vector(&B_vec,j,k);
 
-    kernel(&A_vec,&B_vec,&C_vec,i-1,0,j-1,0,k-1,0,&timers);
+		fill_matrix(A_vec.data,i,j);
+    fill_matrix(B_vec.data,j,k);
+
+		init_vector(&gemm_C_vec,i,k);
+		init_vector(&devito_C_vec,i,k);
+
+		//Init timers
+		struct profiler gemm_timers = {.section0 = 0};
+		struct profiler devito_timers = {.section0 = 0};
+
+
+
+    gemm_kernel(&A_vec,&B_vec,&gemm_C_vec,i-1,0,j-1,0,k-1,0,&gemm_timers);
+		devito_kernel(&A_vec,&B_vec,&devito_C_vec,i-1,0,j-1,0,k-1,0,&devito_timers);
 
 		//PrintArrays
 		if (((i < 10) && (j < 10)) && (k < 10)) {
@@ -38,21 +56,26 @@ int main (int argc, char* argv[] ) {
     	print_matrix(A_vec.data,i,j);
     	printf("B\n");
     	print_matrix(B_vec.data,j,k);
-    	printf("C\n");
-    	print_matrix(C_vec.data,i,k);
+    	printf("GEMM C\n");
+    	print_matrix(gemm_C_vec.data,i,k);
+			printf("devito C\n");
+    	print_matrix(devito_C_vec.data,i,k);
 		}
 
-		printf("GEMM Multiplication took %f seconds\n",timers.section0);
+		printf("GEMM Multiplication took %f seconds\n",gemm_timers.section0);
+		printf("Devito Multiplication took %f seconds\n",devito_timers.section0);
 		
     //Free array storing matrices 
-    free(A);
-    free(B);
-    free(C);
+		destroy_vector(&A_vec);
+		destroy_vector(&B_vec);
+		destroy_vector(&gemm_C_vec);
+		destroy_vector(&devito_C_vec);
+
 
     return 0;
 }
 
-int kernel(struct dataobj *restrict A_vec, struct dataobj *restrict B_vec, struct dataobj *restrict C_vec, const int i_M, const int i_m, const int j_M, const int j_m, const int k_M, const int k_m, struct profiler * timers) {
+int gemm_kernel(struct dataobj *restrict A_vec, struct dataobj *restrict B_vec, struct dataobj *restrict C_vec, const int i_M, const int i_m, const int j_M, const int j_m, const int k_M, const int k_m, struct profiler * timers) {
     START_TIMER(section0)
 		cblas_sgemm(CblasRowMajor,					//Order - Specifies row-major (C) or column-major (Fortran) data ordering.
 								CblasNoTrans,						//TransA - Specifies whether to transpose matrix A.
@@ -71,4 +94,43 @@ int kernel(struct dataobj *restrict A_vec, struct dataobj *restrict B_vec, struc
 		STOP_TIMER(section0,timers)
     return 0;
 }
+
+int devito_kernel(struct dataobj *restrict A_vec, struct dataobj *restrict B_vec, struct dataobj *restrict D_vec, const int i_M, const int i_m, const int j_M, const int j_m, const int k_M, const int k_m, struct profiler * timers)
+{
+  float (*restrict A)[A_vec->size[1]] __attribute__ ((aligned (64))) = (float (*)[A_vec->size[1]]) A_vec->data;
+  float (*restrict B)[B_vec->size[1]] __attribute__ ((aligned (64))) = (float (*)[B_vec->size[1]]) B_vec->data;
+  float (*restrict D)[D_vec->size[1]] __attribute__ ((aligned (64))) = (float (*)[D_vec->size[1]]) D_vec->data;
+
+  /* Begin section0 */
+  START_TIMER(section0)
+  for (int i = i_m; i <= i_M; i += 1)
+  {
+    for (int j = j_m; j <= j_M; j += 1)
+    {
+      for (int k = k_m; k <= k_M; k += 1)
+      {
+        float r0 = A[i][j]*B[j][k];
+        D[i][k] += r0;
+      }
+    }
+  }
+  STOP_TIMER(section0,timers)
+  /* End section0 */
+
+  return 0;
+}
+
+void init_vector(struct dataobj *restrict vect, int n, int m) {
+	float* data = malloc(sizeof(float)*n*m);
+	vect->data = data;
+	vect->size = malloc(sizeof(long)*2);
+	vect->size[0] = n;
+	vect->size[1] = m;
+}
+
+void destroy_vector(struct dataobj *restrict vect) {
+	free(vect->data); 
+	free(vect->size);
+}
+
 
