@@ -13,23 +13,9 @@ int main (int argc, char* argv[] ) {
 
     //Dimentions of the matrix's 
     // A = i*j, B = j*k, C = i*k-
-    int i = 1000;
-    int j = 1000;
-    int k = 1000;
-  
-    // Allocate array storing matrices 
-    // float *A = malloc(sizeof(float)*i*j);
-    // float *B = malloc(sizeof(float)*j*k);
-    // float *gemm_C = malloc(sizeof(float)*i*k);
-		// float *devito_C = malloc(sizeof(float)*i*k);
-    
-    // fill_matrix(A,i,j);
-    // fill_matrix(B,j,k);
-
-    // struct dataobj A_vec = {.data = A, .size = malloc(sizeof(long)*2)};
-    // struct dataobj B_vec = {.data = B, .size = malloc(sizeof(long)*2)};
-    // struct dataobj gemm_C_vec = {.data = gemm_C, .size = malloc(sizeof(long)*2)};
-		// struct dataobj devito_C_vec = {.data = devito_C, .size = malloc(sizeof(long)*2)};
+    int i = 2;
+    int j = 2;
+    int k = 2;
     
 		struct dataobj A_vec, B_vec, gemm_C_vec, devito_C_vec;
 		init_vector(&A_vec,i,j);
@@ -61,7 +47,8 @@ int main (int argc, char* argv[] ) {
 			printf("devito C\n");
     	print_matrix(devito_C_vec.data,i,k);
 		}
-
+		
+		printf("The matrices are the same: %s\n",equal_matrix(A_vec.data,B_vec.data,i,k) ? "true" : "false");
 		printf("GEMM Multiplication took %f seconds\n",gemm_timers.section0);
 		printf("Devito Multiplication took %f seconds\n",devito_timers.section0);
 		
