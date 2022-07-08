@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdbool.h>
+#include "utils.h"
 
 void print_matrix(float *matrix, int n, int m) {
     for(int i =0; i<n; i++){
