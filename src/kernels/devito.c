@@ -17,31 +17,6 @@
 
 //Devito Kernals
 
-int devito_mult_kernel(struct dataobj *restrict A_vec, struct dataobj *restrict B_vec, struct dataobj *restrict D_vec, const int i_M, const int i_m, const int j_M, const int j_m, const int k_M, const int k_m, struct profiler * timers)
-{
-	float (*restrict A)[A_vec->size[1]] __attribute__ ((aligned (64))) = (float (*)[A_vec->size[1]]) A_vec->data;
-	float (*restrict B)[B_vec->size[1]] __attribute__ ((aligned (64))) = (float (*)[B_vec->size[1]]) B_vec->data;
-	float (*restrict D)[D_vec->size[1]] __attribute__ ((aligned (64))) = (float (*)[D_vec->size[1]]) D_vec->data;
-
-	/* Begin section0 */
-	START_TIMER(section0)
-	for (int i = i_m; i <= i_M; i += 1)
-	{
-		for (int j = j_m; j <= j_M; j += 1)
-		{
-			for (int k = k_m; k <= k_M; k += 1)
-			{
-				float r0 = A[i][j]*B[j][k];
-				D[i][k] += r0;
-			}
-		}
-	}
-	STOP_TIMER(section0,timers)
-	/* End section0 */
-
-	return 0;
-}
-
 int devito_chain_contraction_kernel(struct dataobj *restrict A_vec, struct dataobj *restrict B_vec, struct dataobj *restrict C_vec, struct dataobj *restrict D_vec, struct dataobj *restrict E_vec, struct dataobj *restrict F_vec, const int i0_blk0_size, const int i_M, const int i_m, const int j_M, const int j_m, const int k_M, const int k_m, const int l_M, const int l_m, const int nthreads, struct profiler * timers)
 {
   float (*restrict A)[A_vec->size[1]] __attribute__ ((aligned (64))) = (float (*)[A_vec->size[1]]) A_vec->data;
