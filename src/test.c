@@ -20,7 +20,8 @@
 	// chain_contractions(A, B, C, D, E, F, optimize)
 
 int main (int argc, char* argv[]) {
-	int iterations = 51; 
+
+	int iterations = 21; 
 	int step = 100;
 	double results[iterations][3];
 	
@@ -33,7 +34,7 @@ int main (int argc, char* argv[]) {
 
 	for (int i = 0; i < iterations; i++) {
 		results[i][0] = i*step;
-		test_chain_contraction(i*step, results[i]);
+		test_chain_contraction(i*step, 10, results[i]);
 		fprintf(fp1,"%.0f, %f, %f\n",results[i][0],results[i][1],results[i][2]);
 	}
 
@@ -42,7 +43,7 @@ int main (int argc, char* argv[]) {
 
 
 // Test for given size
-void test_chain_contraction(int size, double *results) {
+void test_chain_contraction(int size, int iterations, double *results) {
 	//Dimentions of the matrix's 
 	//They are the same for below 320
 
@@ -72,14 +73,14 @@ void test_chain_contraction(int size, double *results) {
 	struct profiler gemm_timers = {.section0 = 0};
 	struct profiler devito_timers = {.section0 = 0};
 
-	// gemm_mult_kernel(&A_vec,&B_vec,&gemm_C_vec,i-1,0,j-1,0,k-1,0,&gemm_timers);
-	// devito_mult_kernel(&A_vec,&B_vec,&devito_C_vec,i-1,0,j-1,0,k-1,0,&devito_timers);
 	int block_size = 32;
 	int thread_number = 8;
-	devito_chain_contraction_kernel(&A_vec, &B_vec, &C_vec, &devito_D_vec, &E_vec, &devito_F_vec, block_size, i-1,0,j-1,0,k-1,0,l-1,0,thread_number,&devito_timers);
-	gemm_chain_contraction_kernel(&A_vec, &B_vec, &C_vec, &gemm_D_vec, &E_vec, &gemm_F_vec, block_size, i-1,0,j-1,0,k-1,0,l-1,0,thread_number,&gemm_timers);
 
-	// //PrintArrays
+	devito_chain_contraction_kernel(&A_vec, &B_vec, &C_vec, &devito_D_vec, &E_vec, &devito_F_vec, block_size, i-1,0,j-1,0,k-1,0,l-1,0,thread_number,&devito_timers,iterations);
+	gemm_chain_contraction_kernel(&A_vec, &B_vec, &C_vec, &gemm_D_vec, &E_vec, &gemm_F_vec, block_size, i-1,0,j-1,0,k-1,0,l-1,0,thread_number,&gemm_timers,iterations);
+
+	
+	// // //PrintArrays
 	// if (((i < 10) && (j < 10)) && (k < 10)) {
 	// 	printf("A\n");
 	// 	print_matrix(A_vec.data,A_vec.size[0],A_vec.size[1]);
@@ -97,9 +98,10 @@ void test_chain_contraction(int size, double *results) {
 	// 	print_matrix(gemm_F_vec.data,gemm_F_vec.size[0],gemm_F_vec.size[1]);
 	// 	printf("devito F\n");
 	// 	print_matrix(devito_F_vec.data,devito_F_vec.size[0],devito_F_vec.size[1]);
+
+	// 	printf("The matrices are the same: %s\n",equal_matrix(gemm_F_vec.data,devito_F_vec.data,i,l) ? "true" : "false");
 	// }
 	
-	// printf("The matrices are the same: %s\n",equal_matrix(gemm_F_vec.data,devito_F_vec.data,i,l) ? "true" : "false");
 
 	results[1] = gemm_timers.section0;
 	results[2] = devito_timers.section0;
