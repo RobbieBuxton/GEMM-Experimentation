@@ -6,12 +6,8 @@
 #include <cblas.h>
 #include "utils.h"
 #include "test.h"
-#include "sys/time.h"
-#include "math.h"
-#include "xmmintrin.h"
-#include "pmmintrin.h"
-#include "omp.h"
 #include "kernels/gemm.h"
+#include "kernels/devito.h"
 
 
 	// i, j, k, l = dimensions('i j k l')
@@ -28,7 +24,7 @@ int main (int argc, char* argv[] ) {
 	//Dimentions of the matrix's 
 	//They are the same for below 320
 
-	int size = 1000;
+	int size = 2;
 	int i = size;
 	int j = size;
 	int k = size;
