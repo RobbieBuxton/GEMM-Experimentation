@@ -31,7 +31,7 @@ int main (int argc, char* argv[] ) {
 	//Dimentions of the matrix's 
 	//They are the same for below 320
 
-	int size = 2;
+	int size = 2000;
 	int i = size;
 	int j = size;
 	int k = size;
@@ -58,15 +58,12 @@ int main (int argc, char* argv[] ) {
 	struct profiler gemm_timers = {.section0 = 0};
 	struct profiler devito_timers = {.section0 = 0};
 
-
-
 	// gemm_mult_kernel(&A_vec,&B_vec,&gemm_C_vec,i-1,0,j-1,0,k-1,0,&gemm_timers);
 	// devito_mult_kernel(&A_vec,&B_vec,&devito_C_vec,i-1,0,j-1,0,k-1,0,&devito_timers);
-	int block_size = 16;
+	int block_size = 32;
 	int thread_number = 8;
 	devito_chain_contraction_kernel(&A_vec, &B_vec, &C_vec, &devito_D_vec, &E_vec, &devito_F_vec, block_size, i-1,0,j-1,0,k-1,0,l-1,0,thread_number,&devito_timers);
-	gemm_chain_contraction_kernel(&A_vec, &B_vec, &C_vec, &gemm_D_vec, &E_vec, &gemm_F_vec, block_size, i-1,0,j-1,0,k-1,0,l-1,0,thread_number,&gemm_timers);
-
+	// gemm_chain_contraction_kernel(&A_vec, &B_vec, &C_vec, &gemm_D_vec, &E_vec, &gemm_F_vec, block_size, i-1,0,j-1,0,k-1,0,l-1,0,thread_number,&gemm_timers);
 
 	//PrintArrays
 	if (((i < 10) && (j < 10)) && (k < 10)) {
@@ -88,7 +85,7 @@ int main (int argc, char* argv[] ) {
 		print_matrix(devito_F_vec.data,devito_F_vec.size[0],devito_F_vec.size[1]);
 	}
 	
-	printf("The matrices are the same: %s\n",equal_matrix(gemm_F_vec.data,devito_F_vec.data,i,l) ? "true" : "false");
+	// printf("The matrices are the same: %s\n",equal_matrix(gemm_F_vec.data,devito_F_vec.data,i,l) ? "true" : "false");
 	printf("GEMM Multiplication took %f seconds\n",gemm_timers.section0);
 	printf("Devito Multiplication took %f seconds\n",devito_timers.section0);
 	

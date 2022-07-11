@@ -1,8 +1,12 @@
 .DEFAULT_GOAL := build
+CFLAGS = -O3 -g -fPIC -Wall -std=c99 -march=native -Wno-unused-variable -Wno-unused-but-set-variable -ffast-math -fopenmp 
+LIBS = -lblas
+CC = gcc
 
-build:
-	@echo "Building ..."
-	gcc -O3 -g -fPIC -Wall -std=c99 -lblas -march=native -Wno-unused-result -Wno-unused-variable -Wno-unused-but-set-variable -ffast-math -fopenmp src/test.c src/utils.c -lblas -o mult
+build: src/test.o src/utils.o
+	@echo "Building ..." 
+	$(CC) -o mult src/test.o src/utils.o $(CFLAGS) $(LIBS) 
+
 	@echo "Finished ..."
 
 run: build
