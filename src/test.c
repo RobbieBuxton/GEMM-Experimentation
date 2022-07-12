@@ -6,7 +6,7 @@
 #include <cblas.h>
 #include "utils.h"
 #include "test.h"
-#include "kernels/gemm.h"
+#include "kernels/openblas.h"
 #include "kernels/devito.h"
 
 
@@ -42,7 +42,7 @@ int main (int argc, char* argv[]) {
 	// fclose(fp1);
 
 	double results[3];
-	test_chain_contraction(2000, 30, results);
+	test_chain_contraction(2000, 1, results);
 }
 
 
@@ -56,14 +56,14 @@ void test_chain_contraction(int size, int iterations, double *results) {
 	int k = size;
 	int l = size;
 	
-	struct dataobj A_vec, B_vec, C_vec, gemm_D_vec, devito_D_vec, E_vec, gemm_F_vec, devito_F_vec;
+	struct dataobj A_vec, B_vec, C_vec, openblas_D_vec, devito_D_vec, E_vec, openblas_F_vec, devito_F_vec;
 	init_vector(&A_vec,i,j);
 	init_vector(&B_vec,j,k);
 	init_vector(&C_vec,j,k);
 	init_vector(&E_vec,k,l);
-	init_vector(&gemm_D_vec,i,k);
+	init_vector(&openblas_D_vec,i,k);
 	init_vector(&devito_D_vec,i,k);
-	init_vector(&gemm_F_vec,i,l);
+	init_vector(&openblas_F_vec,i,l);
 	init_vector(&devito_F_vec,i,l);
 
 	//Fills matrix with data (Should update it to be random)
@@ -74,19 +74,19 @@ void test_chain_contraction(int size, int iterations, double *results) {
 
 
 	//Init timers
-	struct profiler gemm_timers = {.section0 = 0};
+	struct profiler openblas_timers = {.section0 = 0};
 	struct profiler devito_timers = {.section0 = 0};
 
 	int block_size = 32;
 	int thread_number = 8;
 
 	printf("For size: %.0f\n", results[0]);
-	printf("Started GEMM\n");
-	gemm_chain_contraction_kernel(&A_vec, &B_vec, &C_vec, &gemm_D_vec, &E_vec, &gemm_F_vec, block_size, i-1,0,j-1,0,k-1,0,l-1,0,thread_number,&gemm_timers,iterations);
-	printf("GEMM Multiplication took %f seconds\n",gemm_timers.section0);
-	// printf("Started Devito\n");
-	// devito_chain_contraction_kernel(&A_vec, &B_vec, &C_vec, &devito_D_vec, &E_vec, &devito_F_vec, block_size, i-1,0,j-1,0,k-1,0,l-1,0,thread_number,&devito_timers,iterations);
-	// printf("Devito Multiplication took %f seconds\n\n",devito_timers.section0);
+	printf("Started openblas\n");
+	openblas_chain_contraction_kernel(&A_vec, &B_vec, &C_vec, &openblas_D_vec, &E_vec, &openblas_F_vec, block_size, i-1,0,j-1,0,k-1,0,l-1,0,thread_number,&openblas_timers,iterations);
+	printf("openblas Multiplication took %f seconds\n",openblas_timers.section0);
+	printf("Started Devito\n");
+	devito_chain_contraction_kernel(&A_vec, &B_vec, &C_vec, &devito_D_vec, &E_vec, &devito_F_vec, block_size, i-1,0,j-1,0,k-1,0,l-1,0,thread_number,&devito_timers,iterations);
+	printf("Devito Multiplication took %f seconds\n\n",devito_timers.section0);
 
 	
 	// // PrintArrays
@@ -97,21 +97,21 @@ void test_chain_contraction(int size, int iterations, double *results) {
 	// 	print_matrix(B_vec.data,B_vec.size[0],B_vec.size[1]);
 	// 	printf("C\n");
 	// 	print_matrix(C_vec.data,C_vec.size[0],C_vec.size[1]);
-	// 	printf("GEMM D\n");
-	// 	print_matrix(gemm_D_vec.data,gemm_D_vec.size[0],gemm_D_vec.size[1]);
+	// 	printf("openblas D\n");
+	// 	print_matrix(openblas_D_vec.data,openblas_D_vec.size[0],openblas_D_vec.size[1]);
 	// 	printf("devito D\n");
 	// 	print_matrix(devito_D_vec.data,devito_D_vec.size[0],devito_D_vec.size[1]);
 	// 	printf("E\n");
 	// 	print_matrix(E_vec.data,E_vec.size[0],E_vec.size[1]);
-	// 	printf("GEMM F\n");
-	// 	print_matrix(gemm_F_vec.data,gemm_F_vec.size[0],gemm_F_vec.size[1]);
+	// 	printf("openblas F\n");
+	// 	print_matrix(openblas_F_vec.data,openblas_F_vec.size[0],openblas_F_vec.size[1]);
 	// 	printf("devito F\n");
 	// 	print_matrix(devito_F_vec.data,devito_F_vec.size[0],devito_F_vec.size[1]);
 	// }
-	// printf("The matrices are the same: %s\n",equal_matrix(gemm_F_vec.data,devito_F_vec.data,i,l) ? "true" : "false");
+	// printf("The matrices are the same: %s\n",equal_matrix(openblas_F_vec.data,devito_F_vec.data,i,l) ? "true" : "false");
 	
 
-	results[1] = gemm_timers.section0;
+	results[1] = openblas_timers.section0;
 	results[2] = devito_timers.section0;
 	
 
@@ -120,9 +120,9 @@ void test_chain_contraction(int size, int iterations, double *results) {
 	destroy_vector(&B_vec);
 	destroy_vector(&C_vec);
 	destroy_vector(&E_vec);
-	destroy_vector(&gemm_D_vec);
+	destroy_vector(&openblas_D_vec);
 	destroy_vector(&devito_D_vec);
-	destroy_vector(&gemm_F_vec);
+	destroy_vector(&openblas_F_vec);
 	destroy_vector(&devito_F_vec);
 }
 
