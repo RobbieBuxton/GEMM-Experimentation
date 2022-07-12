@@ -15,7 +15,6 @@ void print_matrix(float *matrix, int n, int m) {
 }
 
 void random_fill_matrix(float *matrix, int n, int m) {
-		int maxRandVal = 100;
     for(int i =0; i<n; i++){
         for(int j=0; j<m; j++){
             matrix[n*i + j] = (float)rand()/(float)(RAND_MAX/100);
@@ -23,8 +22,21 @@ void random_fill_matrix(float *matrix, int n, int m) {
     }
 }
 
+void sparse_fill_matrix(float *matrix, int n, int m,float sparcity) {
+    for(int i =0; i<n; i++){
+        for(int j=0; j<m; j++){
+						printf("%f\n",(float)rand()/(float)(RAND_MAX));
+						if (((float)rand()/(float)(RAND_MAX)) <= sparcity) {
+							matrix[n*i + j] = (float)rand()/(float)(RAND_MAX/100);
+						} else {
+							matrix[n*i + j] = 0;
+						}
+            
+        }
+    }
+}
+
 void index_fill_matrix(float *matrix, int n, int m) {
-		int maxRandVal = 100;
     for(int i =0; i<n; i++){
         for(int j=0; j<m; j++){
             matrix[n*i + j] = n*i + j;

@@ -36,6 +36,37 @@ int nvblas_chain_contraction_kernel(struct dataobj *restrict A_vec, struct datao
 			(float *)D_vec->data, 	
 			&ldc);
 
+		sgemm(			
+			&transa,						
+			&transb,						
+			&m,								
+			&n,								
+			&k,							
+			&alpha,										
+			(float *)A_vec->data, 	
+			&lda,								
+			(float *)C_vec->data,		
+			&ldb, 								
+			&beta, 										
+			(float *)D_vec->data, 	
+			&ldc);
+
+		sgemm(			
+			&transa,						
+			&transb,						
+			&m,								
+			&n,								
+			&k,							
+			&alpha,										
+			(float *)D_vec->data, 	
+			&lda,								
+			(float *)E_vec->data,		
+			&ldb, 								
+			&beta, 										
+			(float *)F_vec->data, 	
+			&ldc);
+
+
 		// sgemm(			
 		// 	'n',						
 		// 	'n',						
