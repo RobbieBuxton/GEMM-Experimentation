@@ -6,6 +6,7 @@
 #include <cblas.h>
 #include "utils.h"
 #include "test.h"
+#include "kernels/nvblas.h"
 #include "kernels/openblas.h"
 #include "kernels/devito.h"
 
@@ -56,13 +57,15 @@ void test_chain_contraction(int size, int iterations, double *results) {
 	int k = size;
 	int l = size;
 	
-	struct dataobj A_vec, B_vec, C_vec, openblas_D_vec, devito_D_vec, E_vec, openblas_F_vec, devito_F_vec;
+	struct dataobj A_vec, B_vec, C_vec, nvblas_D_vec, openblas_D_vec, devito_D_vec, E_vec, nvblas_F_vec, openblas_F_vec, devito_F_vec;
 	init_vector(&A_vec,i,j);
 	init_vector(&B_vec,j,k);
 	init_vector(&C_vec,j,k);
 	init_vector(&E_vec,k,l);
+	init_vector(&nvblas_D_vec,i,k);
 	init_vector(&openblas_D_vec,i,k);
 	init_vector(&devito_D_vec,i,k);
+	init_vector(&nvblas_F_vec,i,l);
 	init_vector(&openblas_F_vec,i,l);
 	init_vector(&devito_F_vec,i,l);
 
@@ -74,6 +77,7 @@ void test_chain_contraction(int size, int iterations, double *results) {
 
 
 	//Init timers
+	struct profiler nvblas_timers = {.section0 = 0};
 	struct profiler openblas_timers = {.section0 = 0};
 	struct profiler devito_timers = {.section0 = 0};
 
@@ -81,6 +85,9 @@ void test_chain_contraction(int size, int iterations, double *results) {
 	int thread_number = 8;
 
 	printf("For size: %.0f\n", results[0]);
+	printf("Started nvblas\n");
+	nvblas_chain_contraction_kernel(&A_vec, &B_vec, &C_vec, &nvblas_D_vec, &E_vec, &nvblas_F_vec, block_size, i-1,0,j-1,0,k-1,0,l-1,0,thread_number,&nvblas_timers,iterations);
+	printf("nvblas Multiplication took %f seconds\n",nvblas_timers.section0);
 	printf("Started openblas\n");
 	openblas_chain_contraction_kernel(&A_vec, &B_vec, &C_vec, &openblas_D_vec, &E_vec, &openblas_F_vec, block_size, i-1,0,j-1,0,k-1,0,l-1,0,thread_number,&openblas_timers,iterations);
 	printf("openblas Multiplication took %f seconds\n",openblas_timers.section0);
@@ -110,7 +117,6 @@ void test_chain_contraction(int size, int iterations, double *results) {
 	// }
 	// printf("The matrices are the same: %s\n",equal_matrix(openblas_F_vec.data,devito_F_vec.data,i,l) ? "true" : "false");
 	
-
 	results[1] = openblas_timers.section0;
 	results[2] = devito_timers.section0;
 	

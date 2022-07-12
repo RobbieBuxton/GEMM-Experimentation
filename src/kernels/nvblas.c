@@ -2,6 +2,7 @@
 #define STOP_TIMER(S,T) gettimeofday(&end_ ## S, NULL); T->S += (double)(end_ ## S .tv_sec-start_ ## S.tv_sec)+(double)(end_ ## S .tv_usec-start_ ## S .tv_usec)/1000000;
 
 #include "nvblas.h"
+#include <cblas.h>
 #include "sys/time.h"
 
 int nvblas_chain_contraction_kernel(struct dataobj *restrict A_vec, struct dataobj *restrict B_vec, struct dataobj *restrict C_vec, struct dataobj *restrict D_vec, struct dataobj *restrict E_vec, struct dataobj *restrict F_vec, const int i0_blk0_size, const int i_M, const int i_m, const int j_M, const int j_m, const int k_M, const int k_m, const int l_M, const int l_m, const int nthreads, struct profiler * timers, int iterations) {
@@ -9,6 +10,37 @@ int nvblas_chain_contraction_kernel(struct dataobj *restrict A_vec, struct datao
 	START_TIMER(section0)
 
 	for (int iteration = 0; iteration < iterations; iteration++) {
+
+		// const char* transa;
+		// const char* transb;
+		// const int* m;
+		// const int* n;
+		// const int* k;
+		// const float* alpha;
+		// const float* a;
+		// const int* lda;
+		// const float* b;
+		// const int* ldb;
+		// const float* beta;
+		// float* c;
+		// const int* ldc;
+
+		// transa = 'n';
+		// transb= 'n';
+		// m = 'n';
+		// n;
+		// k;
+		// alpha;
+		// a;
+		// lda;
+		// b;
+		// ldb;
+		// beta;
+		// c;
+		// ldc;
+
+
+		
 		sgemm(			
 			'n',						
 			'n',						
@@ -24,35 +56,51 @@ int nvblas_chain_contraction_kernel(struct dataobj *restrict A_vec, struct datao
 			(float *)D_vec->data, 	
 			i_M + 1);
 
-		sgemm(		
-			'n',						
-			'n',						
-			i_M + 1,								
-			k_M + 1,								
-			j_M + 1,						
-			1.0,										
-			(float *)A_vec->data, 	
-			i_M + 1,								
-			(float *)C_vec->data,		 
-			j_M + 1, 								
-			1.0, 										
-			(float *)D_vec->data, 	
-			i_M + 1);								
 
-		sgemm(
-			'n',					
-			'n',						
-			i_M + 1,							
-			k_M + 1,					
-			j_M + 1,								
-			1.0,										
-			(float *)D_vec->data, 	
-			i_M + 1,								
-			(float *)E_vec->data,		
-			j_M + 1, 								
-			1.0, 										
-			(float *)F_vec->data, 	
-			i_M + 1);					
+		// sgemm(			
+		// 	'n',						
+		// 	'n',						
+		// 	i_M + 1,								
+		// 	k_M + 1,								
+		// 	j_M + 1,							
+		// 	1.0,										
+		// 	(float *)A_vec->data, 	
+		// 	i_M + 1,								
+		// 	(float *)B_vec->data,		
+		// 	j_M + 1, 								
+		// 	1.0, 										
+		// 	(float *)D_vec->data, 	
+		// 	i_M + 1);
+
+		// sgemm(		
+		// 	'n',						
+		// 	'n',						
+		// 	i_M + 1,								
+		// 	k_M + 1,								
+		// 	j_M + 1,						
+		// 	1.0,										
+		// 	(float *)A_vec->data, 	
+		// 	i_M + 1,								
+		// 	(float *)C_vec->data,		 
+		// 	j_M + 1, 								
+		// 	1.0, 										
+		// 	(float *)D_vec->data, 	
+		// 	i_M + 1);								
+
+		// sgemm(
+		// 	'n',					
+		// 	'n',						
+		// 	i_M + 1,							
+		// 	k_M + 1,					
+		// 	j_M + 1,								
+		// 	1.0,										
+		// 	(float *)D_vec->data, 	
+		// 	i_M + 1,								
+		// 	(float *)E_vec->data,		
+		// 	j_M + 1, 								
+		// 	1.0, 										
+		// 	(float *)F_vec->data, 	
+		// 	i_M + 1);					
 	}
 
 
