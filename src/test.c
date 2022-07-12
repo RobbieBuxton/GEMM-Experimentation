@@ -10,42 +10,32 @@
 #include "kernels/openblas.h"
 #include "kernels/devito.h"
 
-
-	// i, j, k, l = dimensions('i j k l')
-	// A = Function(name='A', shape=mat_shape, dimensions=(i, j))
-	// B = Function(name='B', shape=mat_shape, dimensions=(j, k))
-	// C = Function(name='C', shape=mat_shape, dimensions=(j, k))
-	// D = Function(name='D', shape=mat_shape, dimensions=(i, k))
-	// E = Function(name='E', shape=mat_shape, dimensions=(k, l))
-	// F = Function(name='F', shape=mat_shape, dimensions=(i, l))
-	// chain_contractions(A, B, C, D, E, F, optimize)
-
 int main (int argc, char* argv[]) {
 
-	// int iterations = 5;
-	// int steps= 21; 
-	// int step = 250;
-	// double results[iterations][4];
-	
-	// FILE* fp1 = fopen("results.csv", "w");
-	// if (fp1 == NULL)
-	// {
-	// 		printf("Error while opening the file.\n");
-	// 		return 0;
-	// }
-
-	// for (int i = 0; i < steps; i++) {
-	// 	results[i][0] = i*step;
-	// 	test_chain_contraction(i*step, iterations, results[i]);
-	// 	fprintf(fp1,"%.0f, %f, %f, %f\n",results[i][0],results[i][1],results[i][2],results[i][3]);
-	// }
-
-	// fclose(fp1);
-
-	double results[4];
-	test_chain_contraction(5, 200, results);
+	test_kernel(21,250,5);
+	// double results[4];
+	// test_chain_contraction(5, 200, results);
 }
 
+
+void test_kernel(int steps, int step, int iterations) {
+	double results[steps][4];
+	
+	FILE* fp1 = fopen("results.csv", "w");
+	if (fp1 == NULL)
+	{
+			printf("Error while opening the file.\n");
+			return;
+	}
+
+	for (int i = 0; i < steps; i++) {
+		results[i][0] = i*step;
+		test_chain_contraction(i*step, iterations, results[i]);
+		fprintf(fp1,"%.0f, %f, %f, %f\n",results[i][0],results[i][1],results[i][2],results[i][3]);
+	}
+
+	fclose(fp1);
+}
 
 // Test for given size
 void test_chain_contraction(int size, int iterations, double *results) {
@@ -91,9 +81,9 @@ void test_chain_contraction(int size, int iterations, double *results) {
 	printf("Started openblas\n");
 	openblas_chain_contraction_kernel(&A_vec, &B_vec, &C_vec, &openblas_D_vec, &E_vec, &openblas_F_vec, block_size, i-1,0,j-1,0,k-1,0,l-1,0,thread_number,&openblas_timers,iterations);
 	printf("openblas Multiplication took %f seconds\n",openblas_timers.section0);
-	printf("Started Devito\n");
-	devito_chain_contraction_kernel(&A_vec, &B_vec, &C_vec, &devito_D_vec, &E_vec, &devito_F_vec, block_size, i-1,0,j-1,0,k-1,0,l-1,0,thread_number,&devito_timers,iterations);
-	printf("Devito Multiplication took %f seconds\n\n",devito_timers.section0);
+	// printf("Started Devito\n");
+	// devito_chain_contraction_kernel(&A_vec, &B_vec, &C_vec, &devito_D_vec, &E_vec, &devito_F_vec, block_size, i-1,0,j-1,0,k-1,0,l-1,0,thread_number,&devito_timers,iterations);
+	// printf("Devito Multiplication took %f seconds\n\n",devito_timers.section0);
 
 	
 	// PrintArrays
