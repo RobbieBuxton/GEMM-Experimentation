@@ -21,24 +21,28 @@
 
 int main (int argc, char* argv[]) {
 
-	int iterations = 21; 
-	int step = 100;
-	double results[iterations][3];
+	// int iterations = 10;
+	// int steps= 21; 
+	// int step = 100;
+	// double results[iterations][3];
 	
-	FILE* fp1 = fopen("results.csv", "w");//create a file
-	if (fp1 == NULL)
-	{
-			printf("Error while opening the file.\n");
-			return 0;
-	}
+	// FILE* fp1 = fopen("results.csv", "w");//create a file
+	// if (fp1 == NULL)
+	// {
+	// 		printf("Error while opening the file.\n");
+	// 		return 0;
+	// }
 
-	for (int i = 0; i < iterations; i++) {
-		results[i][0] = i*step;
-		test_chain_contraction(i*step, 10, results[i]);
-		fprintf(fp1,"%.0f, %f, %f\n",results[i][0],results[i][1],results[i][2]);
-	}
+	// for (int i = 0; i < steps; i++) {
+	// 	results[i][0] = i*step;
+	// 	test_chain_contraction(i*step, iterations, results[i]);
+	// 	fprintf(fp1,"%.0f, %f, %f\n",results[i][0],results[i][1],results[i][2]);
+	// }
 
-	fclose(fp1);
+	// fclose(fp1);
+
+	double results[3];
+	test_chain_contraction(2000, 30, results);
 }
 
 
@@ -63,10 +67,10 @@ void test_chain_contraction(int size, int iterations, double *results) {
 	init_vector(&devito_F_vec,i,l);
 
 	//Fills matrix with data (Should update it to be random)
-	fill_matrix(A_vec.data,A_vec.size[0],A_vec.size[1]);
-	fill_matrix(B_vec.data,B_vec.size[0],B_vec.size[1]);
-	fill_matrix(C_vec.data,C_vec.size[0],C_vec.size[1]);
-	fill_matrix(E_vec.data,E_vec.size[0],E_vec.size[1]);
+	index_fill_matrix(A_vec.data,A_vec.size[0],A_vec.size[1]);
+	index_fill_matrix(B_vec.data,B_vec.size[0],B_vec.size[1]);
+	index_fill_matrix(C_vec.data,C_vec.size[0],C_vec.size[1]);
+	index_fill_matrix(E_vec.data,E_vec.size[0],E_vec.size[1]);
 
 
 	//Init timers
@@ -76,11 +80,16 @@ void test_chain_contraction(int size, int iterations, double *results) {
 	int block_size = 32;
 	int thread_number = 8;
 
-	devito_chain_contraction_kernel(&A_vec, &B_vec, &C_vec, &devito_D_vec, &E_vec, &devito_F_vec, block_size, i-1,0,j-1,0,k-1,0,l-1,0,thread_number,&devito_timers,iterations);
+	printf("For size: %.0f\n", results[0]);
+	printf("Started GEMM\n");
 	gemm_chain_contraction_kernel(&A_vec, &B_vec, &C_vec, &gemm_D_vec, &E_vec, &gemm_F_vec, block_size, i-1,0,j-1,0,k-1,0,l-1,0,thread_number,&gemm_timers,iterations);
+	printf("GEMM Multiplication took %f seconds\n",gemm_timers.section0);
+	// printf("Started Devito\n");
+	// devito_chain_contraction_kernel(&A_vec, &B_vec, &C_vec, &devito_D_vec, &E_vec, &devito_F_vec, block_size, i-1,0,j-1,0,k-1,0,l-1,0,thread_number,&devito_timers,iterations);
+	// printf("Devito Multiplication took %f seconds\n\n",devito_timers.section0);
 
 	
-	// // //PrintArrays
+	// // PrintArrays
 	// if (((i < 10) && (j < 10)) && (k < 10)) {
 	// 	printf("A\n");
 	// 	print_matrix(A_vec.data,A_vec.size[0],A_vec.size[1]);
@@ -98,18 +107,13 @@ void test_chain_contraction(int size, int iterations, double *results) {
 	// 	print_matrix(gemm_F_vec.data,gemm_F_vec.size[0],gemm_F_vec.size[1]);
 	// 	printf("devito F\n");
 	// 	print_matrix(devito_F_vec.data,devito_F_vec.size[0],devito_F_vec.size[1]);
-
-	// 	printf("The matrices are the same: %s\n",equal_matrix(gemm_F_vec.data,devito_F_vec.data,i,l) ? "true" : "false");
 	// }
+	// printf("The matrices are the same: %s\n",equal_matrix(gemm_F_vec.data,devito_F_vec.data,i,l) ? "true" : "false");
 	
 
 	results[1] = gemm_timers.section0;
 	results[2] = devito_timers.section0;
 	
-	printf("For size: %.0f\n", results[0]);
-	printf("GEMM Multiplication took %f seconds\n",gemm_timers.section0);
-	printf("Devito Multiplication took %f seconds\n\n",devito_timers.section0);
-
 
 	//Free array storing matrices 
 	destroy_vector(&A_vec);

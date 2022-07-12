@@ -45,9 +45,7 @@ int gemm_chain_contraction_kernel(struct dataobj *restrict A_vec, struct dataobj
 			1.0, 										
 			(float *)D_vec->data, 	
 			i_M + 1);								
-		STOP_TIMER(section0,timers)
 
-		
 		cblas_sgemm(
 			CblasRowMajor,					
 			CblasNoTrans,					

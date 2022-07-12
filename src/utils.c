@@ -14,11 +14,20 @@ void print_matrix(float *matrix, int n, int m) {
     printf("\n");
 }
 
-void fill_matrix(float *matrix, int n, int m) {
+void random_fill_matrix(float *matrix, int n, int m) {
 		int maxRandVal = 100;
     for(int i =0; i<n; i++){
         for(int j=0; j<m; j++){
             matrix[n*i + j] = (float)rand()/(float)(RAND_MAX/100);
+        }
+    }
+}
+
+void index_fill_matrix(float *matrix, int n, int m) {
+		int maxRandVal = 100;
+    for(int i =0; i<n; i++){
+        for(int j=0; j<m; j++){
+            matrix[n*i + j] = n*i + j;
         }
     }
 }
