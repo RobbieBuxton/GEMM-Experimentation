@@ -12,14 +12,14 @@
 
 int main (int argc, char* argv[]) {
 
-	test_kernel(&devito_chain_contraction_kernel,21,250,5);
-	// double results[4];
-	// test_chain_contraction(5, 200, results);
+	test_kernel(&devito_chain_contraction_kernel,11,250,5,0.05);
+	// double results[2];
+	// test_chain_contraction(&openblas_chain_contraction_kernel, 9, 200, 0.05, results);
 }
 
 
-void test_kernel(testKernel kernel,int steps, int step, int iterations) {
-	double results[steps][4];
+void test_kernel(testedKernel kernel,int steps, int step, int iterations, float sparcity) {
+	double results[steps][2];
 	
 	FILE* fp1 = fopen("results.csv", "w");
 	if (fp1 == NULL)
@@ -30,21 +30,20 @@ void test_kernel(testKernel kernel,int steps, int step, int iterations) {
 
 	for (int i = 0; i < steps; i++) {
 		results[i][0] = i*step;
-		test_chain_contraction(kernel, i*step, iterations, results[i]);
-		fprintf(fp1,"%.0f, %f, %f, %f\n",results[i][0],results[i][1],results[i][2],results[i][3]);
+		test_chain_contraction(kernel, i*step, iterations, sparcity, results[i]);
+		fprintf(fp1,"%.0f, %f\n",results[i][0],results[i][1]);
 	}
 
 	fclose(fp1);
 }
 
 // Test for given size
-void test_chain_contraction(testKernel kernel,int size, int iterations, double *results) {
+void test_chain_contraction(testedKernel kernel,int size, int iterations, float sparcity, double *results) {
 	//Dimentions of the matrix's 
 	int i = size;
 	int j = size;
 	int k = size;
 	int l = size;
-	float sparcity = 0.25;
 	
 	struct dataobj A_vec, B_vec, C_vec, D_vec, E_vec, F_vec;
 	init_vector(&A_vec,i,j);
@@ -75,20 +74,20 @@ void test_chain_contraction(testKernel kernel,int size, int iterations, double *
 	printf("Chain contraction %f seconds\n\n",timers.section0);
 
 	// PrintArrays
-	// if (((i < 10) && (j < 10)) && (k < 10)) {
-	// 	printf("A\n");
-	// 	print_matrix(A_vec.data,A_vec.size[0],A_vec.size[1]);
-	// 	printf("B\n");
-	// 	print_matrix(B_vec.data,B_vec.size[0],B_vec.size[1]);
-	// 	printf("C\n");
-	// 	print_matrix(C_vec.data,C_vec.size[0],C_vec.size[1]);
-	// 	printf("D\n");
-	// 	print_matrix(D_vec.data,D_vec.size[0],D_vec.size[1]);
-	// 	printf("E\n");
-	// 	print_matrix(E_vec.data,E_vec.size[0],E_vec.size[1]);
-	// 	printf("F\n");
-	// 	print_matrix(F_vec.data,F_vec.size[0],F_vec.size[1]);
-	// }
+	if (((i < 10) && (j < 10)) && (k < 10)) {
+		printf("A\n");
+		print_matrix(A_vec.data,A_vec.size[0],A_vec.size[1]);
+		printf("B\n");
+		print_matrix(B_vec.data,B_vec.size[0],B_vec.size[1]);
+		printf("C\n");
+		print_matrix(C_vec.data,C_vec.size[0],C_vec.size[1]);
+		printf("D\n");
+		print_matrix(D_vec.data,D_vec.size[0],D_vec.size[1]);
+		printf("E\n");
+		print_matrix(E_vec.data,E_vec.size[0],E_vec.size[1]);
+		printf("F\n");
+		print_matrix(F_vec.data,F_vec.size[0],F_vec.size[1]);
+	}
 
 	results[1] = timers.section0;
 
