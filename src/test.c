@@ -22,7 +22,7 @@ int main (int argc, char* argv[]) {
 }
 
 void test_stencil_kernel(stencilKernel kernel, int steps, int step, int iterations) {
-	struct dataobj u_vec;
+	
 	const float dt = 0.1;
 	const float h_x = 0.5;
 	const float h_y = 0.5;
@@ -39,24 +39,39 @@ void test_stencil_kernel(stencilKernel kernel, int steps, int step, int iteratio
 	const int y_M = 4; 
 	const int y_m = 0; 
 	struct profiler timers = {.section0 = 0};
-	
+
 	int width = 7;
 	int height = 7;
 
-	init_vector(&u_vec,7,7);
+	//Init openblas
+	struct dataobj openblas_u_vec;
+	init_vector(&openblas_u_vec,width,height+1);
+	fill_stencil(openblas_u_vec.data+7*sizeof(float),width,height,1);
+	((float *)openblas_u_vec.data)[16] = 2; 
+	((float *)openblas_u_vec.data)[17] = 2; 
+	((float *)openblas_u_vec.data)[23] = 2; 
+	((float *)openblas_u_vec.data)[24] = 2;
 	
-	fill_stencil(u_vec.data,7,7,1);
-	((float *)u_vec.data)[16] = 2; 
-	((float *)u_vec.data)[17] = 2; 
-	((float *)u_vec.data)[23] = 2; 
-	((float *)u_vec.data)[24] = 2; 
-	fill_stencil(&(((float *) u_vec.data)[49]),7,7,1);
-	((float *)u_vec.data)[65] = 2; 
-	((float *)u_vec.data)[66] = 2; 
-	((float *)u_vec.data)[72] = 2; 
-	((float *)u_vec.data)[73] = 2; 
+	printf("openblas matrix\n");
+	print_matrix(openblas_u_vec.data+7*sizeof(float),width,height);
 
-	(*kernel)(&u_vec, dt, h_x, h_y, i0x0_blk0_size, i0x_ltkn, i0x_rtkn, i0y0_blk0_size, i0y_ltkn, i0y_rtkn, time_M, time_m, x_M, x_m, y_M, y_m, &timers);
+	//Init devito
+	struct dataobj devito_u_vec;
+	init_vector(&devito_u_vec,width,height);
+	fill_stencil(devito_u_vec.data,width,height,1);
+	((float *)devito_u_vec.data)[16] = 2; 
+	((float *)devito_u_vec.data)[17] = 2; 
+	((float *)devito_u_vec.data)[23] = 2; 
+	((float *)devito_u_vec.data)[24] = 2; 
+
+	fill_stencil(&(((float *) devito_u_vec.data)[49]),width,height,1);
+	((float *)devito_u_vec.data)[65] = 2; 
+	((float *)devito_u_vec.data)[66] = 2; 
+	((float *)devito_u_vec.data)[72] = 2; 
+	((float *)devito_u_vec.data)[73] = 2; 
+
+	(*kernel)(&devito_u_vec, dt, h_x, h_y, i0x0_blk0_size, i0x_ltkn, i0x_rtkn, i0y0_blk0_size, i0y_ltkn, i0y_rtkn, time_M, time_m, x_M, x_m, y_M, y_m, &timers);
+
 }
 
 void test_matrix_kernel(matrixKernel kernel,int steps, int step, int iterations, float sparcity) {
