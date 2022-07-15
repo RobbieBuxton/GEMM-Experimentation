@@ -6,19 +6,55 @@
 #include <cblas.h>
 #include "utils.h"
 #include "test.h"
-#include "kernels/nvblas.h"
-#include "kernels/openblas.h"
-#include "kernels/devito.h"
+#include "kernels/matrix/nvblas.h"
+#include "kernels/matrix/openblas.h"
+#include "kernels/matrix/devito.h"
+#include "kernels/stencil/devito.h"
 
 int main (int argc, char* argv[]) {
 
-	test_kernel(&devito_chain_contraction_kernel,11,250,5,0.05);
+	// test_matrix_kernel(&devito_chain_contraction_kernel,11,250,5,0.05);
 	// double results[2];
 	// test_chain_contraction(&openblas_chain_contraction_kernel, 9, 200, 0.05, results);
+
+	test_stencil_kernel(&devito_linear_convection_kernel,1,1,1);
+	return 0;
 }
 
+void test_stencil_kernel(stencilKernel kernel, int steps, int step, int iterations) {
+	struct dataobj u_vec;
+	const float dt = 0.1;
+	const float h_x = 0.5;
+	const float h_y = 0.5;
+	const int i0x0_blk0_size = 1; 
+	const int i0x_ltkn = 1;
+	const int i0x_rtkn = 1;
+	const int i0y0_blk0_size = 1;
+	const int i0y_ltkn = 1;
+	const int i0y_rtkn = 1;
+	const int time_M = 5;
+	const int time_m = 0; 
+	const int x_M = 4;
+	const int x_m = 0;
+	const int y_M = 4; 
+	const int y_m = 0; 
+	struct profiler timers = {.section0 = 0};
+	
+	int width = 7;
+	int height = 7;
 
-void test_kernel(testedKernel kernel,int steps, int step, int iterations, float sparcity) {
+	init_vector(&u_vec,7,7);
+	
+	fill_stencil(u_vec.data,7,7,1);
+	((float *)u_vec.data)[16] = 2; 
+	((float *)u_vec.data)[17] = 2; 
+	((float *)u_vec.data)[23] = 2; 
+	((float *)u_vec.data)[24] = 2; 
+
+	(*kernel)(&u_vec, dt, h_x, h_y, i0x0_blk0_size, i0x_ltkn, i0x_rtkn, i0y0_blk0_size, i0y_ltkn, i0y_rtkn, time_M, time_m, x_M, x_m, y_M, y_m, &timers);
+}
+
+void test_matrix_kernel(matrixKernel kernel,int steps, int step, int iterations, float sparcity) {
 	double results[steps][2];
 	
 	FILE* fp1 = fopen("results.csv", "w");
@@ -38,7 +74,7 @@ void test_kernel(testedKernel kernel,int steps, int step, int iterations, float 
 }
 
 // Test for given size
-void test_chain_contraction(testedKernel kernel,int size, int iterations, float sparcity, double *results) {
+void test_chain_contraction(matrixKernel kernel,int size, int iterations, float sparcity, double *results) {
 	//Dimentions of the matrix's 
 	int i = size;
 	int j = size;
@@ -104,9 +140,10 @@ void test_chain_contraction(testedKernel kernel,int size, int iterations, float 
 void init_vector(struct dataobj *restrict vect, int n, int m) {
 	float* data = malloc(sizeof(float)*n*m);
 	vect->data = data;
-	vect->size = malloc(sizeof(long)*2);
-	vect->size[0] = n;
-	vect->size[1] = m;
+	vect->size = malloc(sizeof(long)*3);
+	vect->size[0] = 2;
+	vect->size[1] = n;
+	vect->size[2] = m;
 }
 
 void destroy_vector(struct dataobj *restrict vect) {
