@@ -50,6 +50,11 @@ void test_stencil_kernel(stencilKernel kernel, int steps, int step, int iteratio
 	((float *)u_vec.data)[17] = 2; 
 	((float *)u_vec.data)[23] = 2; 
 	((float *)u_vec.data)[24] = 2; 
+	fill_stencil(&(((float *) u_vec.data)[49]),7,7,1);
+	((float *)u_vec.data)[65] = 2; 
+	((float *)u_vec.data)[66] = 2; 
+	((float *)u_vec.data)[72] = 2; 
+	((float *)u_vec.data)[73] = 2; 
 
 	(*kernel)(&u_vec, dt, h_x, h_y, i0x0_blk0_size, i0x_ltkn, i0x_rtkn, i0y0_blk0_size, i0y_ltkn, i0y_rtkn, time_M, time_m, x_M, x_m, y_M, y_m, &timers);
 }
@@ -138,7 +143,7 @@ void test_chain_contraction(matrixKernel kernel,int size, int iterations, float 
 
 // Init and destroy vector helpers
 void init_vector(struct dataobj *restrict vect, int n, int m) {
-	float* data = malloc(sizeof(float)*n*m);
+	float* data = malloc(sizeof(float)*n*m*2);
 	vect->data = data;
 	vect->size = malloc(sizeof(long)*3);
 	vect->size[0] = 2;

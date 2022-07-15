@@ -10,12 +10,16 @@
 #include "xmmintrin.h"
 #include "pmmintrin.h"
 #include <stdio.h>
-#include "devito.h"
-
+#include "../../types.h"
 
 int devito_linear_convection_kernel(struct dataobj *restrict u_vec, const float dt, const float h_x, const float h_y, const int i0x0_blk0_size, const int i0x_ltkn, const int i0x_rtkn, const int i0y0_blk0_size, const int i0y_ltkn, const int i0y_rtkn, const int time_M, const int time_m, const int x_M, const int x_m, const int y_M, const int y_m, struct profiler * timers)
 {
+  
+	printf("dt: %f h_x %f h_y %f i0x0_blk0_size %d i0x_ltkn %d i0x_rtkn %d i0y0_blk0_size %d i0y_ltkn %d i0y_rtkn %d time_M %d time_m %d x_M %d x_m %d y_M %d y_m %d",dt,h_x,h_y,i0x0_blk0_size,i0x_ltkn,i0x_rtkn,i0y0_blk0_size,i0y_ltkn,i0y_rtkn,time_M,time_m,x_M,x_m,y_M,y_m);
+
 	float (*restrict u)[u_vec->size[1]][u_vec->size[2]] __attribute__ ((aligned (64))) = (float (*)[u_vec->size[1]][u_vec->size[2]]) u_vec->data;
+
+	printf("\nSize1 %ld \nWidth: %ld\nHeight: %ld\n",u_vec->size[0],u_vec->size[1],u_vec->size[2]);
 
   /* Flush denormal numbers to zero in hardware */
   _MM_SET_DENORMALS_ZERO_MODE(_MM_DENORMALS_ZERO_ON);
@@ -24,14 +28,14 @@ int devito_linear_convection_kernel(struct dataobj *restrict u_vec, const float 
   float r0 = 1.0F/h_x;
   float r1 = 1.0F/h_y;
   float r2 = 1.0F/dt;
-
-  for (int time = time_m, t0 = (time)%(2), t1 = (time + 1)%(2); time <= time_M; time += 1, t0 = (time)%(2), t1 = (time + 1)%(2))
+	
+	for (int time = time_m, t0 = (time)%(2), t1 = (time + 1)%(2); time <= time_M; time += 1, t0 = (time)%(2), t1 = (time + 1)%(2))
   {
 
 		printf("time: %d\n",time);
 		for (int x = 0; x < u_vec->size[1]; x++) {
 			for (int y = 0; y < u_vec->size[2]; y++) {
-				printf("%.1f ",u[t0][x][y]);
+				printf("%.2f ",u[t0][x][y]);
 			}
 			printf("\n");
 		}
@@ -59,7 +63,7 @@ int devito_linear_convection_kernel(struct dataobj *restrict u_vec, const float 
 	printf("time: %d\n",(time_M + 1));
 	for (int x = 0; x < u_vec->size[1]; x++) {
 		for (int y = 0; y < u_vec->size[2]; y++) {
-				printf("%.1f ",u[(time_M + 1)%(2)][x][y]);
+				printf("%.2f ",u[(time_M + 1)%(2)][x][y]);
 			}
 			printf("\n");
 		}

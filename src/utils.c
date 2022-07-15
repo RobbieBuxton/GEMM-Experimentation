@@ -15,14 +15,14 @@ void print_matrix(float *matrix, int n, int m) {
 }
 
 void fill_stencil(float *matrix, int n, int m, int halo_padding) {
-	    for(int i =0; i<n; i++){
-				if ((i - halo_padding) >= 0 && (i + halo_padding) < n ) {
-					for(int j=0; j<m; j++){
-						if ((j - halo_padding) >= 0 && (j + halo_padding) < m ) {
-							matrix[n*i + j] = 1;
-						}
+		for(int i =0; i<n; i++){
+			if ((i - halo_padding) >= 0 && (i + halo_padding) < n ) {
+				for(int j=0; j<m; j++){
+					if ((j - halo_padding) >= 0 && (j + halo_padding) < m ) {
+						matrix[n*i + j] = 1;
 					}
 				}
+			}
     }
 } 
 
