@@ -7,7 +7,11 @@ void print_matrix(float *matrix, int m, int n) {
     for(int i =0; i<n; i++){
         printf("|");
         for(int j=0; j<m; j++){
-            printf("%.2f ",matrix[i*m+j]);
+						if (matrix[i*m+j] != 0) {
+							printf("\x1B[32m%+.2f \x1B[0m",matrix[i*m+j]);
+						} else {
+							printf("%+.2f ",matrix[i*m+j]);
+						}
         }
         printf("|\n");
     }
