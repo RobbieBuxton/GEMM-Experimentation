@@ -10,6 +10,8 @@
 #include "kernels/matrix/openblas.h"
 #include "kernels/matrix/devito.h"
 #include "kernels/stencil/devito.h"
+#include "kernels/stencil/openblas.h"
+
 
 int main (int argc, char* argv[]) {
 
@@ -17,7 +19,7 @@ int main (int argc, char* argv[]) {
 	// double results[2];
 	// test_chain_contraction(&openblas_chain_contraction_kernel, 9, 200, 0.05, results);
 
-	test_stencil_kernel(&devito_linear_convection_kernel,1,1,1);
+	test_stencil_kernel(&devito_linear_convection_kernel,1,1,0);
 	return 0;
 }
 
@@ -32,7 +34,8 @@ void test_stencil_kernel(stencilKernel kernel, int steps, int step, int iteratio
 	const int i0y0_blk0_size = 1;
 	const int i0y_ltkn = 1;
 	const int i0y_rtkn = 1;
-	const int time_M = 5;
+	// const int time_M = 5;
+	const int time_M = iterations;
 	const int time_m = 0; 
 	const int x_M = 4;
 	const int x_m = 0;
@@ -45,33 +48,38 @@ void test_stencil_kernel(stencilKernel kernel, int steps, int step, int iteratio
 
 	//Init openblas
 	struct dataobj openblas_u_vec;
-	init_vector(&openblas_u_vec,width,height+1);
+	init_vector(&openblas_u_vec,width,(height+1)*2);
 	fill_stencil(openblas_u_vec.data+7*sizeof(float),width,height,1);
-	((float *)openblas_u_vec.data)[16] = 2; 
-	((float *)openblas_u_vec.data)[17] = 2; 
 	((float *)openblas_u_vec.data)[23] = 2; 
-	((float *)openblas_u_vec.data)[24] = 2;
+	((float *)openblas_u_vec.data)[24] = 2; 
+	((float *)openblas_u_vec.data)[30] = 2; 
+	((float *)openblas_u_vec.data)[31] = 2;
+
+	fill_stencil(openblas_u_vec.data+9*(7*sizeof(float)),width,height,1);
+	((float *)openblas_u_vec.data)[79] = 2; 
+	((float *)openblas_u_vec.data)[80] = 2; 
+	((float *)openblas_u_vec.data)[86] = 2; 
+	((float *)openblas_u_vec.data)[87] = 2;
 	
 	printf("openblas matrix\n");
-	print_matrix(openblas_u_vec.data+7*sizeof(float),width,height);
+	print_matrix(openblas_u_vec.data,width,2*(height+1));
 
-	//Init devito
-	struct dataobj devito_u_vec;
-	init_vector(&devito_u_vec,width,height);
-	fill_stencil(devito_u_vec.data,width,height,1);
-	((float *)devito_u_vec.data)[16] = 2; 
-	((float *)devito_u_vec.data)[17] = 2; 
-	((float *)devito_u_vec.data)[23] = 2; 
-	((float *)devito_u_vec.data)[24] = 2; 
+	// //Init devito
+	// struct dataobj devito_u_vec;
+	// init_vector(&devito_u_vec,width,height);
+	// fill_stencil(devito_u_vec.data,width,height,1);
+	// ((float *)devito_u_vec.data)[16] = 2; 
+	// ((float *)devito_u_vec.data)[17] = 2; 
+	// ((float *)devito_u_vec.data)[23] = 2; 
+	// ((float *)devito_u_vec.data)[24] = 2; 
 
-	fill_stencil(&(((float *) devito_u_vec.data)[49]),width,height,1);
-	((float *)devito_u_vec.data)[65] = 2; 
-	((float *)devito_u_vec.data)[66] = 2; 
-	((float *)devito_u_vec.data)[72] = 2; 
-	((float *)devito_u_vec.data)[73] = 2; 
+	// fill_stencil(&(((float *) devito_u_vec.data)[49]),width,height,1);
+	// ((float *)devito_u_vec.data)[65] = 2; 
+	// ((float *)devito_u_vec.data)[66] = 2; 
+	// ((float *)devito_u_vec.data)[72] = 2; 
+	// ((float *)devito_u_vec.data)[73] = 2; 
 
 	(*kernel)(&devito_u_vec, dt, h_x, h_y, i0x0_blk0_size, i0x_ltkn, i0x_rtkn, i0y0_blk0_size, i0y_ltkn, i0y_rtkn, time_M, time_m, x_M, x_m, y_M, y_m, &timers);
-
 }
 
 void test_matrix_kernel(matrixKernel kernel,int steps, int step, int iterations, float sparcity) {

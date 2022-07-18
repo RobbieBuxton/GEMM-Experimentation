@@ -50,6 +50,7 @@ int devito_linear_convection_kernel(struct dataobj *restrict u_vec, const float 
           #pragma omp simd aligned(u:32)
           for (int i0y = i0y0_blk0; i0y <= MIN(i0y0_blk0 + i0y0_blk0_size - 1, -i0y_rtkn + y_M); i0y += 1)
           {
+						// printf("u[t1][%d][%d] = %f(%+f %+f %+f %+f %+f)\n",i0x + 1,i0y + 1,dt,-r0*(-u[t0][i0x][i0y + 1]),-r0*u[t0][i0x + 1][i0y + 1],- r1*(-u[t0][i0x + 1][i0y]),-r1*u[t0][i0x + 1][i0y + 1],r2*u[t0][i0x + 1][i0y + 1]);
             u[t1][i0x + 1][i0y + 1] = dt*(-r0*(-u[t0][i0x][i0y + 1]) - r0*u[t0][i0x + 1][i0y + 1] - r1*(-u[t0][i0x + 1][i0y]) - r1*u[t0][i0x + 1][i0y + 1] + r2*u[t0][i0x + 1][i0y + 1]);
           }
         }

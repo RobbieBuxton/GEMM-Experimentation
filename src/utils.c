@@ -3,11 +3,11 @@
 #include <stdbool.h>
 #include "utils.h"
 
-void print_matrix(float *matrix, int n, int m) {
+void print_matrix(float *matrix, int m, int n) {
     for(int i =0; i<n; i++){
         printf("|");
         for(int j=0; j<m; j++){
-            printf("%f ",matrix[i*n+j]);
+            printf("%.2f ",matrix[i*m+j]);
         }
         printf("|\n");
     }
