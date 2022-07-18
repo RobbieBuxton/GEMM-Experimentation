@@ -23,7 +23,7 @@ int main (int argc, char* argv[]) {
 	// printf("####DEVITO####\n");
 	// test_devito_stencil_kernel(1,1,0);
 	printf("####OPENBLAS####\n");
-	test_openblas_stencil_kernel(1,1,0);
+	test_openblas_stencil_kernel(1,1,10);
 	
 	return 0;
 }
@@ -91,23 +91,23 @@ void test_openblas_stencil_kernel(int steps, int step, int iterations) {
 	const int y_m = 0; 
 	struct profiler timers = {.section0 = 0};
 
-	int width = 5;
-	int height = 5;
+	int width = 10;
+	int height = 10;
 
 	//Init openblas
 	struct dataobj openblas_u_vec;
 	init_vector(&openblas_u_vec,width,(height+1)*2);
 	fill_stencil(openblas_u_vec.data+width*sizeof(float),width,height,1);
-	((float *)openblas_u_vec.data)[11] = 2; 
-	((float *)openblas_u_vec.data)[12] = 2; 
-	((float *)openblas_u_vec.data)[16] = 2; 
-	((float *)openblas_u_vec.data)[17] = 2;
+	((float *)openblas_u_vec.data)[width*2 + 1] = 2; 
+	((float *)openblas_u_vec.data)[width*2 + 2] = 2; 
+	((float *)openblas_u_vec.data)[width*3 + 1] = 2; 
+	((float *)openblas_u_vec.data)[width*3 + 2] = 2;
 
 	fill_stencil(openblas_u_vec.data+(height+2)*(width*sizeof(float)),width,height,1);
-	((float *)openblas_u_vec.data)[41] = 2; 
-	((float *)openblas_u_vec.data)[42] = 2; 
-	((float *)openblas_u_vec.data)[46] = 2; 
-	((float *)openblas_u_vec.data)[47] = 2;
+	((float *)openblas_u_vec.data)[(height+1)*width + width*2 + 1] = 2; 
+	((float *)openblas_u_vec.data)[(height+1)*width + width*2 + 2] = 2; 
+	((float *)openblas_u_vec.data)[(height+1)*width + width*3 + 1] = 2; 
+	((float *)openblas_u_vec.data)[(height+1)*width + width*3 + 2] = 2;
 	
 	printf("openblas matrix\n");
 
