@@ -12,39 +12,31 @@ int openblas_linear_convection_kernel(struct dataobj *restrict u_vec, const floa
 	float** transform = malloc(sizeof(float*)*2);
 	// -1 shifted index
 	transform[0] = calloc(sizeof(float),(u_vec->size[1])*(u_vec->size[1]));
-	transform[0][8] = -0.2;
-	transform[0][16] = -0.2;
-	transform[0][24] = -0.2;
-	transform[0][32] = -0.2;
-	transform[0][40] = -0.2;
+	transform[0][6] = -0.2;
+	transform[0][12] = -0.2;
+	transform[0][18] = -0.2;
 
 	// 0 shifted index
 	transform[1] = calloc(sizeof(float),(u_vec->size[1])*(u_vec->size[1]));
 	transform[1][1] = -0.2;
-	transform[1][9] = -0.2;
-	transform[1][17] = -0.2;
-	transform[1][25] = -0.2;
-	transform[1][33] = -0.2;
-
-	transform[1][8] = 0.6;
-	transform[1][16] = 0.6;
-	transform[1][24] = 0.6;
-	transform[1][32] = 0.6;
-	transform[1][40] = 0.6;
+	transform[1][6] = 0.6;
+	transform[1][7] = -0.2;
+	transform[1][12] = 0.6;
+	transform[1][13] = -0.2;
+	transform[1][18] = 0.6;
 
 	float* output = calloc(sizeof(float),(u_vec->size[1])^2);
 
-	printf("Transformation 0\n");
-	print_matrix(transform[0],u_vec->size[1],u_vec->size[1]);
-	printf("Transformation 1\n");
- 	print_matrix(transform[1],u_vec->size[1],u_vec->size[1]);
-	printf("Extended Stencil\n");
-	print_matrix(u_vec->data,u_vec->size[1],u_vec->size[2]);
+	// printf("Extended Stencil\n");
+	// print_matrix(u_vec->data,u_vec->size[1],u_vec->size[2]);
 
 	int row_size =  u_vec->size[1]*sizeof(float);
 
-	printf("Selected Stencil\n");
-	print_matrix((u_vec->data + row_size),u_vec->size[1],u_vec->size[1]);
+	printf("Stencil 0\n");
+	print_matrix((u_vec->data),u_vec->size[1],u_vec->size[1]-1);
+
+	printf("Transformation 0\n");
+	print_matrix(transform[0],u_vec->size[1],u_vec->size[1]);
 
 	//Multiply
 	cblas_sgemm(
@@ -63,7 +55,14 @@ int openblas_linear_convection_kernel(struct dataobj *restrict u_vec, const floa
 	output, 	
 	u_vec->size[1]);
 
+	printf("Output\n");
 	print_matrix(output,u_vec->size[1],u_vec->size[1]);
+
+	printf("Selected Stencil\n");
+	print_matrix((u_vec->data + row_size),u_vec->size[1],u_vec->size[1]);
+
+	printf("Transformation 1\n");
+ 	print_matrix(transform[1],u_vec->size[1],u_vec->size[1]);
 
 	cblas_sgemm(
 	CblasRowMajor,					
@@ -81,6 +80,7 @@ int openblas_linear_convection_kernel(struct dataobj *restrict u_vec, const floa
 	output, 	
 	u_vec->size[1]);
 
+	printf("Output\n");
 	print_matrix(output,u_vec->size[1],u_vec->size[1]);
 
 	free(transform[0]);

@@ -20,8 +20,8 @@ int main (int argc, char* argv[]) {
 	// test_chain_contraction(&openblas_chain_contraction_kernel, 9, 200, 0.05, results);
 	
 	//Switching order causes malloc assersion problem :shrug:
-	printf("####DEVITO####\n");
-	test_devito_stencil_kernel(1,1,0);
+	// printf("####DEVITO####\n");
+	// test_devito_stencil_kernel(1,1,0);
 	printf("####OPENBLAS####\n");
 	test_openblas_stencil_kernel(1,1,0);
 	
@@ -60,7 +60,7 @@ void test_devito_stencil_kernel(int steps, int step, int iterations) {
 	((float *)devito_u_vec.data)[23] = 2; 
 	((float *)devito_u_vec.data)[24] = 2; 
 
-	fill_stencil(&(((float *) devito_u_vec.data)[49]),width+2,height+2,1);
+	fill_stencil(&(((float *) devito_u_vec.data)[(width+2)*(height+2)]),width+2,height+2,1);
 	((float *)devito_u_vec.data)[65] = 2; 
 	((float *)devito_u_vec.data)[66] = 2; 
 	((float *)devito_u_vec.data)[72] = 2; 
@@ -91,23 +91,23 @@ void test_openblas_stencil_kernel(int steps, int step, int iterations) {
 	const int y_m = 0; 
 	struct profiler timers = {.section0 = 0};
 
-	int width = 7;
-	int height = 7;
+	int width = 5;
+	int height = 5;
 
 	//Init openblas
 	struct dataobj openblas_u_vec;
 	init_vector(&openblas_u_vec,width,(height+1)*2);
-	fill_stencil(openblas_u_vec.data+7*sizeof(float),width,height,1);
-	((float *)openblas_u_vec.data)[23] = 2; 
-	((float *)openblas_u_vec.data)[24] = 2; 
-	((float *)openblas_u_vec.data)[30] = 2; 
-	((float *)openblas_u_vec.data)[31] = 2;
+	fill_stencil(openblas_u_vec.data+width*sizeof(float),width,height,1);
+	((float *)openblas_u_vec.data)[11] = 2; 
+	((float *)openblas_u_vec.data)[12] = 2; 
+	((float *)openblas_u_vec.data)[16] = 2; 
+	((float *)openblas_u_vec.data)[17] = 2;
 
-	fill_stencil(openblas_u_vec.data+9*(7*sizeof(float)),width,height,1);
-	((float *)openblas_u_vec.data)[79] = 2; 
-	((float *)openblas_u_vec.data)[80] = 2; 
-	((float *)openblas_u_vec.data)[86] = 2; 
-	((float *)openblas_u_vec.data)[87] = 2;
+	fill_stencil(openblas_u_vec.data+(height+2)*(width*sizeof(float)),width,height,1);
+	((float *)openblas_u_vec.data)[41] = 2; 
+	((float *)openblas_u_vec.data)[42] = 2; 
+	((float *)openblas_u_vec.data)[46] = 2; 
+	((float *)openblas_u_vec.data)[47] = 2;
 	
 	printf("openblas matrix\n");
 
