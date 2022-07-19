@@ -9,7 +9,7 @@
 #include <string.h>
 #include <cblas.h>
 
-int openblas_linear_convection_kernel(struct dataobj *restrict u_vec, const float dt, const float h_x, const float h_y, const int i0x0_blk0_size, const int i0x_ltkn, const int i0x_rtkn, const int i0y0_blk0_size, const int i0y_ltkn, const int i0y_rtkn, const int time_M, const int time_m, const int x_M, const int x_m, const int y_M, const int y_m, struct profiler * timers) {
+int openblas_linear_convection_kernel(struct dataobj *restrict u_vec, const float dt, const float h_x, const float h_y, const int x0_blk0_size, const int y0_blk0_size, const int time_M, const int time_m, const int x_M, const int x_m, const int y_M, const int y_m, struct profiler * timers) {
 	
 	//For convection where | ? ?  | = |      0  0.2*t0|
 	//                     | ? t1 |   | 0.2*t0  0.6*t0|
@@ -30,11 +30,9 @@ int openblas_linear_convection_kernel(struct dataobj *restrict u_vec, const floa
 	//                      0.2 0 |
 	//                        0 0 |                   
 	transform[0] = calloc(sizeof(float),(u_vec->size[1])*(u_vec->size[1]));
-	transform[0][u_vec->size[1]+1] = 0.2;
-	transform[0][2*(u_vec->size[1]+1)] = 0.2;
-	transform[0][3*(u_vec->size[1]+1)] = 0.2;
-	transform[0][4*(u_vec->size[1]+1)] = 0.2;
-	transform[0][5*(u_vec->size[1]+1)] = 0.2;
+	for (int i = 1; i < u_vec->size[1] - 1; i ++) {
+		transform[0][i*(u_vec->size[1]+1)] = 0.2;
+	}
 
 	// printf("Transformation 0\n");
 	// print_matrix(transform[0],u_vec->size[1],u_vec->size[1]);
@@ -48,16 +46,10 @@ int openblas_linear_convection_kernel(struct dataobj *restrict u_vec, const floa
 	//                 .... 0.6 0 |
 	//                 .... 0   0 |   
 	transform[1] = calloc(sizeof(float),(u_vec->size[1])*(u_vec->size[1]));
-	transform[1][1] = 0.2;
-	transform[1][(u_vec->size[1] + 1)] = 0.6;
-	transform[1][(u_vec->size[1] + 1) + 1] = 0.2;
-	transform[1][2*(u_vec->size[1] + 1)] = 0.6;
-	transform[1][2*(u_vec->size[1] + 1) + 1] = 0.2;
-	transform[1][3*(u_vec->size[1] + 1)] = 0.6;
-	transform[1][3*(u_vec->size[1] + 1) + 1] = 0.2;
-	transform[1][4*(u_vec->size[1] + 1)] = 0.6;
-	transform[1][4*(u_vec->size[1] + 1) + 1] = 0.2;
-	transform[1][5*(u_vec->size[1] + 1)] = 0.6;
+	for (int i = 1; i < u_vec->size[1] - 1; i ++) {
+		transform[1][(i-1)*(u_vec->size[1]+1)+1] = 0.2;
+		transform[1][i*(u_vec->size[1]+1)] = 0.6;
+	}
 
 	// printf("Transformation 1\n");
  	// print_matrix(transform[1],u_vec->size[1],u_vec->size[1]);
