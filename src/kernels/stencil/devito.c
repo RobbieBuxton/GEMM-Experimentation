@@ -32,6 +32,7 @@ int devito_linear_convection_kernel(struct dataobj *restrict u_vec, const float 
   {
 		// printf("time: %d\n",time);
 		// print_matrix((float*)u[t0],u_vec->size[1],u_vec->size[2]);
+
     /* Begin section0 */
     
     for (int x0_blk0 = x_m; x0_blk0 <= x_M; x0_blk0 += x0_blk0_size)

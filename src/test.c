@@ -20,7 +20,7 @@ int main (int argc, char* argv[]) {
 	// test_chain_contraction(&openblas_chain_contraction_kernel, 9, 200, 0.05, results);
 	
 	//Switching order causes malloc assersion problem :shrug:
-	int size = 7;
+	int size = 8;
 	int iterations = 10;
 	printf("####DEVITO####\n");
 	test_devito_stencil_kernel(1,1,iterations,size);
@@ -40,9 +40,9 @@ void test_devito_stencil_kernel(int steps, int step, int iterations, int size) {
 	// const int time_M = 5;
 	const int time_M = iterations;
 	const int time_m = 0; 
-	const int x_M = 4;
+	const int x_M = size -3 ;
 	const int x_m = 0;
-	const int y_M = 4; 
+	const int y_M = size -3; 
 	const int y_m = 0; 
 	struct profiler timers = {.section0 = 0};
 
@@ -53,16 +53,16 @@ void test_devito_stencil_kernel(int steps, int step, int iterations, int size) {
 	struct dataobj devito_u_vec;
 	init_vector(&devito_u_vec,width,height);
 	fill_stencil(devito_u_vec.data,width,height,1);
-	((float *)devito_u_vec.data)[16] = 2; 
-	((float *)devito_u_vec.data)[17] = 2; 
-	((float *)devito_u_vec.data)[23] = 2; 
-	((float *)devito_u_vec.data)[24] = 2; 
+	((float *)devito_u_vec.data)[width * 2 + 2] = 2; 
+	((float *)devito_u_vec.data)[width * 2 + 3] = 2; 
+	((float *)devito_u_vec.data)[width * 3 + 2] = 2; 
+	((float *)devito_u_vec.data)[width * 3 + 3] = 2; 
 
 	fill_stencil(&(((float *) devito_u_vec.data)[(width)*(height)]),width,height,1);
-	((float *)devito_u_vec.data)[65] = 2; 
-	((float *)devito_u_vec.data)[66] = 2; 
-	((float *)devito_u_vec.data)[72] = 2; 
-	((float *)devito_u_vec.data)[73] = 2; 
+	((float *)devito_u_vec.data)[width*height + width * 2 + 2] = 2; 
+	((float *)devito_u_vec.data)[width*height + width * 2 + 3] = 2; 
+	((float *)devito_u_vec.data)[width*height + width * 3 + 2] = 2; 
+	((float *)devito_u_vec.data)[width*height + width * 3 + 3] = 2; 
 
 	devito_linear_convection_kernel(&devito_u_vec, dt, h_x, h_y, x0_blk0_size, y0_blk0_size, time_M, time_m, x_M, x_m, y_M, y_m, &timers);
 
