@@ -48,6 +48,10 @@ int openblas_linear_convection_kernel(struct dataobj *restrict u_vec, const floa
 	float* stencils[2];
 	stencils[0] = u_vec->data + row_size ;
 	stencils[1] = u_vec->data + row_size * ((u_vec->size[1]) + 2);
+
+	// print_matrix(stencils[0] - u_vec->size[1],u_vec->size[1],u_vec->size[1]);
+	// print_matrix(stencils[1],u_vec->size[1],u_vec->size[1]);
+
 	for (int t = time_m, t0 = t%2, t1 = (t+1)%2; t <= time_M; t++, t0 = t%2, t1 = (t+1)%2) {
 		printf("t0: %d t1: %d\n",t0,t1);
 		printf("Stencil %d\n",t);
@@ -61,12 +65,12 @@ int openblas_linear_convection_kernel(struct dataobj *restrict u_vec, const floa
 		u_vec->size[1],								
 		u_vec->size[1],							
 		1.0,										
-		stencils[t0] - row_size, 	
+		stencils[t0] - u_vec->size[1], 	
 		u_vec->size[1],								
 		transform[0],		
 		u_vec->size[1], 								
 		0.0, 										
-		stencils[t1] , 	
+		stencils[t1], 	
 		u_vec->size[1]);
 
 		cblas_sgemm(
@@ -81,7 +85,7 @@ int openblas_linear_convection_kernel(struct dataobj *restrict u_vec, const floa
 		u_vec->size[1],								
 		transform[1],		
 		u_vec->size[1], 								
-		0.0, 										
+		1.0, 										
 		stencils[t1], 	
 		u_vec->size[1]);
 	}

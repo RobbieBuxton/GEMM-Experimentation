@@ -21,9 +21,9 @@ int main (int argc, char* argv[]) {
 	
 	//Switching order causes malloc assersion problem :shrug:
 	printf("####DEVITO####\n");
-	test_devito_stencil_kernel(1,1,2);
+	test_devito_stencil_kernel(1,1,10);
 	printf("####OPENBLAS####\n");
-	test_openblas_stencil_kernel(1,1,2);
+	test_openblas_stencil_kernel(1,1,10);
 	
 	return 0;
 }
