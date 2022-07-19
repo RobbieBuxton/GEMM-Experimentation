@@ -18,6 +18,8 @@ int openblas_linear_convection_kernel(struct dataobj *restrict u_vec, const floa
 	transform[0][u_vec->size[1]+1] = -0.2;
 	transform[0][2*(u_vec->size[1]+1)] = -0.2;
 	transform[0][3*(u_vec->size[1]+1)] = -0.2;
+	transform[0][4*(u_vec->size[1]+1)] = -0.2;
+	transform[0][5*(u_vec->size[1]+1)] = -0.2;
 
 	printf("Transformation 0\n");
 	print_matrix(transform[0],u_vec->size[1],u_vec->size[1]);
@@ -30,6 +32,10 @@ int openblas_linear_convection_kernel(struct dataobj *restrict u_vec, const floa
 	transform[1][2*(u_vec->size[1] + 1)] = 0.6;
 	transform[1][2*(u_vec->size[1] + 1) + 1] = -0.2;
 	transform[1][3*(u_vec->size[1] + 1)] = 0.6;
+	transform[1][3*(u_vec->size[1] + 1) + 1] = -0.2;
+	transform[1][4*(u_vec->size[1] + 1)] = 0.6;
+	transform[1][4*(u_vec->size[1] + 1) + 1] = -0.2;
+	transform[1][5*(u_vec->size[1] + 1)] = 0.6;
 
 	printf("Transformation 1\n");
  	print_matrix(transform[1],u_vec->size[1],u_vec->size[1]);

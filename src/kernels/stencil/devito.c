@@ -27,25 +27,24 @@ int devito_linear_convection_kernel(struct dataobj *restrict u_vec, const float 
   float r0 = 1.0F/h_x;
   float r1 = 1.0F/h_y;
   float r2 = 1.0F/dt;
-	
-	printf("\nr0: %f r1: %f r2: %f \n",r0,r1,r2);
-	for (int time = time_m, t0 = (time)%(2), t1 = (time + 1)%(2); time <= time_M; time += 1, t0 = (time)%(2), t1 = (time + 1)%(2))
+
+  for (int time = time_m, t0 = (time)%(2), t1 = (time + 1)%(2); time <= time_M; time += 1, t0 = (time)%(2), t1 = (time + 1)%(2))
   {
-		printf("time: %d\n",t0);
+		printf("time: %d\n",time);
 		print_matrix((float*)u[t0],u_vec->size[1],u_vec->size[2]);
     /* Begin section0 */
     START_TIMER(section0)
-    for (int i0x0_blk0 = i0x_ltkn + x_m; i0x0_blk0 <= -i0x_rtkn + x_M; i0x0_blk0 += i0x0_blk0_size)
+    for (int x0_blk0 = x_m; x0_blk0 <= x_M; x0_blk0 += i0x0_blk0_size)
     {
-      for (int i0y0_blk0 = i0y_ltkn + y_m; i0y0_blk0 <= -i0y_rtkn + y_M; i0y0_blk0 += i0y0_blk0_size)
+      for (int y0_blk0 = y_m; y0_blk0 <= y_M; y0_blk0 += i0y0_blk0_size)
       {
-        for (int i0x = i0x0_blk0; i0x <= MIN(i0x0_blk0 + i0x0_blk0_size - 1, -i0x_rtkn + x_M); i0x += 1)
+        for (int x = x0_blk0; x <= MIN(x0_blk0 + i0x0_blk0_size - 1, x_M); x += 1)
         {
           #pragma omp simd aligned(u:32)
-          for (int i0y = i0y0_blk0; i0y <= MIN(i0y0_blk0 + i0y0_blk0_size - 1, -i0y_rtkn + y_M); i0y += 1)
+          for (int y = y0_blk0; y <= MIN(y0_blk0 + i0y0_blk0_size - 1, y_M); y += 1)
           {
-						printf("u[t1][%d][%d] = %f(%+f %+f %+f %+f %+f)\n",i0x + 1,i0y + 1,dt,-r0*(-u[t0][i0x][i0y + 1]),-r0*u[t0][i0x + 1][i0y + 1],- r1*(-u[t0][i0x + 1][i0y]),-r1*u[t0][i0x + 1][i0y + 1],r2*u[t0][i0x + 1][i0y + 1]);
-            u[t1][i0x + 1][i0y + 1] = dt*(-r0*(-u[t0][i0x][i0y + 1]) - r0*u[t0][i0x + 1][i0y + 1] - r1*(-u[t0][i0x + 1][i0y]) - r1*u[t0][i0x + 1][i0y + 1] + r2*u[t0][i0x + 1][i0y + 1]);
+						// printf("u[t1][%d][%d] = %f(%+f %+f %+f %+f %+f)\n",x + 1,y + 1,dt,-r0*(-u[t0][x][y + 1]),-r0*u[t0][x + 1][y + 1],- r1*(-u[t0][x + 1][y]),-r1*u[t0][x + 1][y + 1],r2*u[t0][x + 1][y + 1]);
+            u[t1][x + 1][y + 1] = dt*(-r0*(-u[t0][x][y + 1]) - r0*u[t0][x + 1][y + 1] - r1*(-u[t0][x + 1][y]) - r1*u[t0][x + 1][y + 1] + r2*u[t0][x + 1][y + 1]);
           }
         }
       }
