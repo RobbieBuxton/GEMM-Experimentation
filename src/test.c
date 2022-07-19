@@ -68,7 +68,7 @@ void test_devito_stencil_kernel(int steps, int step, int iterations) {
 
 	devito_linear_convection_kernel(&devito_u_vec, dt, h_x, h_y, i0x0_blk0_size, i0x_ltkn, i0x_rtkn, i0y0_blk0_size, i0y_ltkn, i0y_rtkn, time_M, time_m, x_M, x_m, y_M, y_m, &timers);
 
-
+	printf("devito timer: %f\n",timers.section0);
 	free(devito_u_vec.data);
 }
 
@@ -112,7 +112,7 @@ void test_openblas_stencil_kernel(int steps, int step, int iterations) {
 	printf("openblas matrix\n");
 
 	openblas_linear_convection_kernel(&openblas_u_vec, dt, h_x, h_y, i0x0_blk0_size, i0x_ltkn, i0x_rtkn, i0y0_blk0_size, i0y_ltkn, i0y_rtkn, time_M, time_m, x_M, x_m, y_M, y_m, &timers);
-
+	printf("openblas timer: %f\n",timers.section0);
 	free(openblas_u_vec.data);
 }
 

@@ -16,7 +16,7 @@
 int devito_linear_convection_kernel(struct dataobj *restrict u_vec, const float dt, const float h_x, const float h_y, const int i0x0_blk0_size, const int i0x_ltkn, const int i0x_rtkn, const int i0y0_blk0_size, const int i0y_ltkn, const int i0y_rtkn, const int time_M, const int time_m, const int x_M, const int x_m, const int y_M, const int y_m, struct profiler * timers)
 {
   
-	printf("\ndt: %f h_x %f h_y %f i0x0_blk0_size %d i0x_ltkn %d i0x_rtkn %d i0y0_blk0_size %d i0y_ltkn %d i0y_rtkn %d time_M %d time_m %d x_M %d x_m %d y_M %d y_m %d\n",dt,h_x,h_y,i0x0_blk0_size,i0x_ltkn,i0x_rtkn,i0y0_blk0_size,i0y_ltkn,i0y_rtkn,time_M,time_m,x_M,x_m,y_M,y_m);
+	// printf("\ndt: %f h_x %f h_y %f i0x0_blk0_size %d i0x_ltkn %d i0x_rtkn %d i0y0_blk0_size %d i0y_ltkn %d i0y_rtkn %d time_M %d time_m %d x_M %d x_m %d y_M %d y_m %d\n",dt,h_x,h_y,i0x0_blk0_size,i0x_ltkn,i0x_rtkn,i0y0_blk0_size,i0y_ltkn,i0y_rtkn,time_M,time_m,x_M,x_m,y_M,y_m);
 
 	float (*restrict u)[u_vec->size[1]][u_vec->size[2]] __attribute__ ((aligned (64))) = (float (*)[u_vec->size[1]][u_vec->size[2]]) u_vec->data;
 
@@ -27,13 +27,13 @@ int devito_linear_convection_kernel(struct dataobj *restrict u_vec, const float 
   float r0 = 1.0F/h_x;
   float r1 = 1.0F/h_y;
   float r2 = 1.0F/dt;
-
+	START_TIMER(section0)
   for (int time = time_m, t0 = (time)%(2), t1 = (time + 1)%(2); time <= time_M; time += 1, t0 = (time)%(2), t1 = (time + 1)%(2))
   {
-		printf("time: %d\n",time);
-		print_matrix((float*)u[t0],u_vec->size[1],u_vec->size[2]);
+		// printf("time: %d\n",time);
+		// print_matrix((float*)u[t0],u_vec->size[1],u_vec->size[2]);
     /* Begin section0 */
-    START_TIMER(section0)
+    
     for (int x0_blk0 = x_m; x0_blk0 <= x_M; x0_blk0 += i0x0_blk0_size)
     {
       for (int y0_blk0 = y_m; y0_blk0 <= y_M; y0_blk0 += i0y0_blk0_size)
@@ -63,9 +63,10 @@ int devito_linear_convection_kernel(struct dataobj *restrict u_vec, const float 
         }
       }
     }
-    STOP_TIMER(section0,timers)
+ 
     /* End section0 */
   }
+	STOP_TIMER(section0,timers)
 
 	printf("time: %d\n",(time_M + 1));
 	print_matrix((float*)u[(time_M + 1)%2],u_vec->size[1],u_vec->size[2]);

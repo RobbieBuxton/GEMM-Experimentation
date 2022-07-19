@@ -4,6 +4,7 @@
 #include "openblas.h"
 #include <stdio.h>
 #include "../../utils.h"
+#include "sys/time.h"
 #include <stdlib.h>
 #include <string.h>
 #include <cblas.h>
@@ -68,11 +69,11 @@ int openblas_linear_convection_kernel(struct dataobj *restrict u_vec, const floa
 
 	// print_matrix(stencils[0] - u_vec->size[1],u_vec->size[1],u_vec->size[1]);
 	// print_matrix(stencils[1],u_vec->size[1],u_vec->size[1]);
-
+	START_TIMER(section0)
 	for (int t = time_m, t0 = t%2, t1 = (t+1)%2; t <= time_M; t++, t0 = t%2, t1 = (t+1)%2) {
-		printf("t0: %d t1: %d\n",t0,t1);
-		printf("Stencil %d\n",t);
-		print_matrix(stencils[t0],u_vec->size[1],u_vec->size[1]);
+		// printf("t0: %d t1: %d\n",t0,t1);
+		// printf("Stencil %d\n",t);
+		// print_matrix(stencils[t0],u_vec->size[1],u_vec->size[1]);
 		
 		//Multiply slice -1 
 		// We shift the stencil up by 1 row so that the result ends up in the correct place in the output matrix
@@ -110,6 +111,8 @@ int openblas_linear_convection_kernel(struct dataobj *restrict u_vec, const floa
 		stencils[t1], 	
 		u_vec->size[1]);
 	}
+	STOP_TIMER(section0,timers)
+	
 	printf("Stencil %d\n",time_M+1);
 	print_matrix(stencils[(time_M+1)%2],u_vec->size[1],u_vec->size[1]);
 
@@ -117,5 +120,6 @@ int openblas_linear_convection_kernel(struct dataobj *restrict u_vec, const floa
 	free(transform[0]);
 	free(transform[1]);
 	free(transform);
+	
 	return 0;
 }
