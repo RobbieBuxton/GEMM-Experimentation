@@ -43,7 +43,21 @@ int devito_linear_convection_kernel(struct dataobj *restrict u_vec, const float 
           #pragma omp simd aligned(u:32)
           for (int y = y0_blk0; y <= MIN(y0_blk0 + i0y0_blk0_size - 1, y_M); y += 1)
           {
-						// printf("u[t1][%d][%d] = %f(%+f %+f %+f %+f %+f)\n",x + 1,y + 1,dt,-r0*(-u[t0][x][y + 1]),-r0*u[t0][x + 1][y + 1],- r1*(-u[t0][x + 1][y]),-r1*u[t0][x + 1][y + 1],r2*u[t0][x + 1][y + 1]);
+						// printf("u[t1][%d][%d] = %f(%+f*%+f %+f*%+f %+f*%+f %+f*%+f %+f*%+f)\n",
+						// 			x + 1,
+						// 			y + 1,
+						// 			dt,
+						// 			-r0,
+						// 			(-u[t0][x][y + 1]),
+						// 			-r0,
+						// 			u[t0][x + 1][y + 1],
+						// 			- r1,
+						// 			(-u[t0][x + 1][y]),
+						// 			-r1,
+						// 			u[t0][x + 1][y + 1],
+						// 			r2,
+						// 			u[t0][x + 1][y + 1]);
+
             u[t1][x + 1][y + 1] = dt*(-r0*(-u[t0][x][y + 1]) - r0*u[t0][x + 1][y + 1] - r1*(-u[t0][x + 1][y]) - r1*u[t0][x + 1][y + 1] + r2*u[t0][x + 1][y + 1]);
           }
         }
@@ -54,7 +68,7 @@ int devito_linear_convection_kernel(struct dataobj *restrict u_vec, const float 
   }
 
 	printf("time: %d\n",(time_M + 1));
-	print_matrix((float*)u[time_M + 1],u_vec->size[1],u_vec->size[2]);
+	print_matrix((float*)u[(time_M + 1)%2],u_vec->size[1],u_vec->size[2]);
 
   return 0;
 }

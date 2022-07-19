@@ -98,10 +98,10 @@ void test_openblas_stencil_kernel(int steps, int step, int iterations) {
 	struct dataobj openblas_u_vec;
 	init_vector(&openblas_u_vec,width,(height+1)*2);
 	fill_stencil(openblas_u_vec.data+width*sizeof(float),width,height,1);
-	((float *)openblas_u_vec.data)[width*2 + 1] = 2; 
-	((float *)openblas_u_vec.data)[width*2 + 2] = 2; 
-	((float *)openblas_u_vec.data)[width*3 + 1] = 2; 
-	((float *)openblas_u_vec.data)[width*3 + 2] = 2;
+	((float *)openblas_u_vec.data)[width*3 + 2] = 2; 
+	((float *)openblas_u_vec.data)[width*3 + 3] = 2; 
+	((float *)openblas_u_vec.data)[width*4 + 2] = 2; 
+	((float *)openblas_u_vec.data)[width*4 + 3] = 2;
 
 	fill_stencil(openblas_u_vec.data+(height+2)*(width*sizeof(float)),width,height,1);
 	((float *)openblas_u_vec.data)[(height+1)*width + width*2 + 1] = 2; 
