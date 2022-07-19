@@ -10,10 +10,19 @@
 
 int openblas_linear_convection_kernel(struct dataobj *restrict u_vec, const float dt, const float h_x, const float h_y, const int i0x0_blk0_size, const int i0x_ltkn, const int i0x_rtkn, const int i0y0_blk0_size, const int i0y_ltkn, const int i0y_rtkn, const int time_M, const int time_m, const int x_M, const int x_m, const int y_M, const int y_m, struct profiler * timers) {
 	
+	//For convection where | ? ?  | = |      0  0.2*t0|
+	//                     | ? t1 |   | 0.2*t0  0.6*t0|
+	
 	int row_size =  u_vec->size[1]*sizeof(float);
 	
 	float** transform = malloc(sizeof(float*)*2);
 	// -1 shifted index
+	// | 0 0.2 0   0   ....
+  // | 0   0 0.2 0   ....
+	// | 0   0   0 0.2 ....
+	// ...       ...   ....
+	//                      0.2 0 |
+	//                        0 0 |                   
 	transform[0] = calloc(sizeof(float),(u_vec->size[1])*(u_vec->size[1]));
 	transform[0][u_vec->size[1]+1] = 0.2;
 	transform[0][2*(u_vec->size[1]+1)] = 0.2;
@@ -25,8 +34,14 @@ int openblas_linear_convection_kernel(struct dataobj *restrict u_vec, const floa
 	// print_matrix(transform[0],u_vec->size[1],u_vec->size[1]);
 
 	// 0 shifted index
+	// | 0 0.6 0   0   ....
+  // | 0   0 0.6 0   ....
+	// | 0   0   0 0.6 ....
+	// ...       ...   ....
+	//                      0.6 0 |
+	//                        0 0 |   
 	transform[1] = calloc(sizeof(float),(u_vec->size[1])*(u_vec->size[1]));
-	transform[1][1] = -0.2;
+	transform[1][1] = 0.2;
 	transform[1][(u_vec->size[1] + 1)] = 0.6;
 	transform[1][(u_vec->size[1] + 1) + 1] = 0.2;
 	transform[1][2*(u_vec->size[1] + 1)] = 0.6;
@@ -40,10 +55,6 @@ int openblas_linear_convection_kernel(struct dataobj *restrict u_vec, const floa
 	// printf("Transformation 1\n");
  	// print_matrix(transform[1],u_vec->size[1],u_vec->size[1]);
 
-	// printf("Extended Stencil\n");
-	// print_matrix(u_vec->data,u_vec->size[1],u_vec->size[2]);
-
-	
 
 	float* stencils[2];
 	stencils[0] = u_vec->data + row_size ;
