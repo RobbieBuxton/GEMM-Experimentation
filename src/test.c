@@ -20,8 +20,9 @@ int main (int argc, char* argv[]) {
 	// test_chain_contraction(&openblas_chain_contraction_kernel, 9, 200, 0.05, results);
 	
 	//Switching order causes malloc assersion problem :shrug:
-	int size = 8;
-	int iterations = 10;
+	int size = 25;
+	int iterations = 100;
+	printf("Size: %d Iterations: %d\n",size,iterations);
 	printf("####DEVITO####\n");
 	test_devito_stencil_kernel(1,1,iterations,size);
 	printf("####OPENBLAS####\n");
@@ -102,8 +103,6 @@ void test_openblas_stencil_kernel(int steps, int step, int iterations, int size)
 	((float *)openblas_u_vec.data)[(height+1)*width + width*2 + 2] = 2; 
 	((float *)openblas_u_vec.data)[(height+1)*width + width*3 + 1] = 2; 
 	((float *)openblas_u_vec.data)[(height+1)*width + width*3 + 2] = 2;
-	
-	printf("openblas matrix\n");
 
 	openblas_linear_convection_kernel(&openblas_u_vec, dt, h_x, h_y, x0_blk0_size, y0_blk0_size, time_M, time_m, x_M, x_m, y_M, y_m, &timers);
 	printf("openblas timer: %f\n",timers.section0);

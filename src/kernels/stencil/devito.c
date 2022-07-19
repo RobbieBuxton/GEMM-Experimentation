@@ -68,9 +68,10 @@ int devito_linear_convection_kernel(struct dataobj *restrict u_vec, const float 
     /* End section0 */
   }
 	STOP_TIMER(section0,timers)
-
-	printf("time: %d\n",(time_M + 1));
-	print_matrix((float*)u[(time_M + 1)%2],u_vec->size[1],u_vec->size[2]);
+	if (u_vec->size[1] < 30) {
+		printf("time: %d\n",(time_M + 1));
+		print_matrix((float*)u[(time_M + 1)%2],u_vec->size[1],u_vec->size[2]);
+	}
 
   return 0;
 }

@@ -105,8 +105,11 @@ int openblas_linear_convection_kernel(struct dataobj *restrict u_vec, const floa
 	}
 	STOP_TIMER(section0,timers)
 	
-	printf("Stencil %d\n",time_M+1);
-	print_matrix(stencils[(time_M+1)%2],u_vec->size[1],u_vec->size[1]);
+	if (u_vec->size[1] < 30) {
+		printf("Stencil %d\n",time_M+1);
+		print_matrix(stencils[(time_M+1)%2],u_vec->size[1],u_vec->size[1]);
+
+	}
 
 
 	free(transform[0]);
