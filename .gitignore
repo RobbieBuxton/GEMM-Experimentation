@@ -1,6 +1,7 @@
 *
 !/**/
 !*.*
+!Makefile
 *.o
 *.log
 *.vscode/settings.json

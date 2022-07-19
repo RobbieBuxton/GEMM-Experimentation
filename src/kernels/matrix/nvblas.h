@@ -1,6 +1,6 @@
 #ifndef NVBLAS_H
 #define NVBLAS_H
-#include "../types.h"
+#include "../../types.h"
 extern void sgemm(const char* transa,
            const char* transb,
            const int* m,
