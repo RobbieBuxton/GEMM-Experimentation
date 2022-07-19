@@ -12,11 +12,16 @@ int openblas_linear_convection_kernel(struct dataobj *restrict u_vec, const floa
 	
 	//For convection where | ? ?  | = |      0  0.2*t0|
 	//                     | ? t1 |   | 0.2*t0  0.6*t0|
-	
+
+
+	// Results in two slices 
+	// slice -1 | 0 0 0.2 |
+	// slice 0  | 0.2 0.6 |
+ 	
 	int row_size =  u_vec->size[1]*sizeof(float);
 	
 	float** transform = malloc(sizeof(float*)*2);
-	// -1 shifted index
+	// -1 shifted slice
 	// | 0 0.2 0   0   ....
   // | 0   0 0.2 0   ....
 	// | 0   0   0 0.2 ....
@@ -33,13 +38,14 @@ int openblas_linear_convection_kernel(struct dataobj *restrict u_vec, const floa
 	// printf("Transformation 0\n");
 	// print_matrix(transform[0],u_vec->size[1],u_vec->size[1]);
 
-	// 0 shifted index
-	// | 0 0.6 0   0   ....
-  // | 0   0 0.6 0   ....
+	// 0 shifted slice
+	// | 0 0.6 0.2 0   ....
+  // | 0   0 0.6 0.2 ....
 	// | 0   0   0 0.6 ....
 	// ...       ...   ....
-	//                      0.6 0 |
-	//                        0 0 |   
+	//                 .... 0.2 0 |
+	//                 .... 0.6 0 |
+	//                 .... 0   0 |   
 	transform[1] = calloc(sizeof(float),(u_vec->size[1])*(u_vec->size[1]));
 	transform[1][1] = 0.2;
 	transform[1][(u_vec->size[1] + 1)] = 0.6;
@@ -55,7 +61,7 @@ int openblas_linear_convection_kernel(struct dataobj *restrict u_vec, const floa
 	// printf("Transformation 1\n");
  	// print_matrix(transform[1],u_vec->size[1],u_vec->size[1]);
 
-
+	// Alternating stencils like how devito does it
 	float* stencils[2];
 	stencils[0] = u_vec->data + row_size ;
 	stencils[1] = u_vec->data + row_size * ((u_vec->size[1]) + 2);
@@ -67,12 +73,14 @@ int openblas_linear_convection_kernel(struct dataobj *restrict u_vec, const floa
 		printf("t0: %d t1: %d\n",t0,t1);
 		printf("Stencil %d\n",t);
 		print_matrix(stencils[t0],u_vec->size[1],u_vec->size[1]);
-		//Multiply
+		
+		//Multiply slice -1 
+		// We shift the stencil up by 1 row so that the result ends up in the correct place in the output matrix
 		cblas_sgemm(
 		CblasRowMajor,					
 		CblasNoTrans,						
 		CblasNoTrans,						
-		u_vec->size[1]-1,	// Each time you go up you cut off a row							
+		u_vec->size[1]-1,	// as shifted up by 1 we need to slice off the bottom row to stop the halo getting filed					
 		u_vec->size[1],								
 		u_vec->size[1],							
 		1.0,										
@@ -84,6 +92,8 @@ int openblas_linear_convection_kernel(struct dataobj *restrict u_vec, const floa
 		stencils[t1], 	
 		u_vec->size[1]);
 
+		//Multiply slice 0
+		// Not shifted as 0 slice
 		cblas_sgemm(
 		CblasRowMajor,					
 		CblasNoTrans,						
