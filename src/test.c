@@ -20,8 +20,8 @@ int main (int argc, char* argv[]) {
 	// test_chain_contraction(&openblas_chain_contraction_kernel, 9, 200, 0.05, results);
 	
 	//Switching order causes malloc assersion problem :shrug:
-	int size = 5;
-	int iterations = 10;
+	int size = 1000;
+	int iterations = 500;
 	printf("Size: %d Iterations: %d\n",size,iterations);
 	printf("####DEVITO####\n");
 	test_devito_stencil_kernel(1,1,iterations,size);

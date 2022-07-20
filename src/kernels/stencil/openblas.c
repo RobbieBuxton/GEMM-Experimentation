@@ -22,42 +22,37 @@ int openblas_linear_convection_kernel(struct dataobj *restrict u_vec, const floa
 	int row_size =  u_vec->size[1]*sizeof(float);
 	
 	float** transform = malloc(sizeof(float*)*2);
-	// -1 shifted slice
-	// | 0 0.2 0   0   ....
-  // | 0   0 0.2 0   ....
-	// | 0   0   0 0.2 ....
-	// ...       ...   ....
-	//                      0.2 0 |
-	//                        0 0 |                   
+
+	// Vertical Transform               
 	transform[0] = calloc(sizeof(float),(u_vec->size[1])*(u_vec->size[1]));
 	for (int i = 1; i < u_vec->size[1] - 1; i ++) {
-		transform[0][i*(u_vec->size[1]+1)] = 0.2;
+		transform[0][(i)*(u_vec->size[1]+1)-1] = 0.2;
 	}
 
-	// printf("Transformation 0\n");
+	// printf("Vertical Transform \n");
 	// print_matrix(transform[0],u_vec->size[1],u_vec->size[1]);
 
-	// 0 shifted slice
-	// | 0 0.6 0.2 0   ....
-  // | 0   0 0.6 0.2 ....
-	// | 0   0   0 0.6 ....
-	// ...       ...   ....
-	//                 .... 0.2 0 |
-	//                 .... 0.6 0 |
-	//                 .... 0   0 |   
+	// Horizontal Transform
 	transform[1] = calloc(sizeof(float),(u_vec->size[1])*(u_vec->size[1]));
 	for (int i = 1; i < u_vec->size[1] - 1; i ++) {
 		transform[1][(i-1)*(u_vec->size[1]+1)+1] = 0.2;
 		transform[1][i*(u_vec->size[1]+1)] = 0.6;
 	}
 
-	// printf("Transformation 1\n");
+	// printf("Horizontal Transform\n");
  	// print_matrix(transform[1],u_vec->size[1],u_vec->size[1]);
+
+	float* temp = calloc(sizeof(float),(u_vec->size[1])*(u_vec->size[1]));
+
+	// print_matrix(temp,u_vec->size[1],u_vec->size[1]);
 
 	// Alternating stencils like how devito does it
 	float* stencils[2];
 	stencils[0] = u_vec->data + row_size ;
 	stencils[1] = u_vec->data + row_size * ((u_vec->size[1]) + 2);
+
+	// print_matrix(stencils[0],u_vec->size[1],u_vec->size[1]);
+	// print_matrix(stencils[1],u_vec->size[1],u_vec->size[1]);
 
 	// print_matrix(stencils[0] - u_vec->size[1],u_vec->size[1],u_vec->size[1]);
 	// print_matrix(stencils[1],u_vec->size[1],u_vec->size[1]);
@@ -73,13 +68,13 @@ int openblas_linear_convection_kernel(struct dataobj *restrict u_vec, const floa
 		CblasRowMajor,					
 		CblasNoTrans,						
 		CblasNoTrans,						
-		u_vec->size[1]-1,	// as shifted up by 1 we need to slice off the bottom row to stop the halo getting filed					
+		u_vec->size[1],			
 		u_vec->size[1],								
 		u_vec->size[1],							
 		1.0,										
-		stencils[t0] - u_vec->size[1], 	
-		u_vec->size[1],								
-		transform[0],		
+		transform[0], 	
+		u_vec->size[1],	
+		stencils[t0],		
 		u_vec->size[1], 								
 		0.0, 										
 		stencils[t1], 	
