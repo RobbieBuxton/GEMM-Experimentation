@@ -8,9 +8,9 @@ void print_matrix(float *matrix, int m, int n) {
         printf("|");
         for(int j=0; j<m; j++){
 						if (matrix[i*m+j] != 0) {
-							printf("\x1B[32m%+.2f \x1B[0m",matrix[i*m+j]);
+							printf("\x1B[32m%+.4f \x1B[0m",matrix[i*m+j]);
 						} else {
-							printf("%+.2f ",matrix[i*m+j]);
+							printf("%+.4f ",matrix[i*m+j]);
 						}
         }
         printf("|\n");
