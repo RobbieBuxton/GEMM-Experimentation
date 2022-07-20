@@ -10,4 +10,5 @@ extern void test_chain_contraction(matrixKernel kernel,int size, int iterations,
 extern void test_matrix_kernel(matrixKernel kernel, int steps, int step, int iterations, float sparcity);
 extern void test_devito_stencil_kernel(int steps, int step, int iterations, int size);
 extern void test_openblas_stencil_kernel(int steps, int step, int iterations,  int size);
+extern void test_custom_stencil_kernel(int steps, int step, int iterations,  int size);
 #endif

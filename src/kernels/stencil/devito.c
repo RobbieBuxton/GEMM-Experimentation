@@ -24,9 +24,8 @@ int devito_linear_convection_kernel(struct dataobj *restrict u_vec, const float 
   _MM_SET_DENORMALS_ZERO_MODE(_MM_DENORMALS_ZERO_ON);
   _MM_SET_FLUSH_ZERO_MODE(_MM_FLUSH_ZERO_ON);
 
-  float r0 = 1.0F/h_x;
-  float r1 = 1.0F/h_y;
-  float r2 = 1.0F/dt;
+  float a = 0.1;
+  float b = 0.5;
 	START_TIMER(section0)
   for (int time = time_m, t0 = (time)%(2), t1 = (time + 1)%(2); time <= time_M; time += 1, t0 = (time)%(2), t1 = (time + 1)%(2))
   {
@@ -59,7 +58,7 @@ int devito_linear_convection_kernel(struct dataobj *restrict u_vec, const float 
 						// 			r2,
 						// 			u[t0][x + 1][y + 1]);
 
-            u[t1][x + 1][y + 1] = dt*(r0*(u[t0][x][y + 1]) + r1*(u[t0][x + 1][y]) + (r2 - r1 - r0) *u[t0][x + 1][y + 1]);
+            u[t1][x + 1][y + 1] = a*(u[t0][x][y + 1]) + a*(u[t0][x + 1][y]) + a*(u[t0][x + 2][y + 1]) + a*(u[t0][x + 1][y + 2]) + b*u[t0][x + 1][y + 1];
           }
         }
       }
