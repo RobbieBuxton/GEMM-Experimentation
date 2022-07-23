@@ -119,12 +119,16 @@ int custom_linear_convection_kernel(struct dataobj *restrict u_vec, const float 
 	float vl[ldvl*n];
 	int ldvr = n;
 	float vr[ldvr*n];
-	int lwork;
+	int lwork = -1;
 	float wkopt; 
 	float* work; 
 	int info;
 
-	sgeev(&jobvl,&jobvr,&n,transform[0],&lda,wr,wi,vl,&ldvl,vr, &ldvr,&wkopt, &lwork, &info);
+  sgeev_( "Vectors", "Vectors", &n, transform[1], &lda, wr, wi, vl, &ldvl, vr, &ldvr,&wkopt, &lwork, &info );
+	lwork = (int)wkopt;
+  work = (float*)malloc( lwork*sizeof(float) );
+	printf("Info: %d\n",info);
+	
 	
 	free(transform[0]);
 	free(transform[1]);

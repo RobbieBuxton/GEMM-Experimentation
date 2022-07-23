@@ -23,11 +23,11 @@ int main (int argc, char* argv[]) {
 	//Switching order causes malloc assersion problem :shrug:
 	int size = 7;
 	int iterations = 1;
-	printf("Size: %d Iterations: %d\n",size,iterations);
-	printf("####DEVITO####\n");
-	test_devito_stencil_kernel(1,1,iterations,size);
-	printf("####OPENBLAS####\n");
-	test_openblas_stencil_kernel(1,1,iterations,size);
+	// printf("Size: %d Iterations: %d\n",size,iterations);
+	// printf("####DEVITO####\n");
+	// test_devito_stencil_kernel(1,1,iterations,size);
+	// printf("####OPENBLAS####\n");
+	// test_openblas_stencil_kernel(1,1,iterations,size);
 	printf("####CUSTOM####\n");
 	test_custom_stencil_kernel(1,1,iterations,size);
 	
