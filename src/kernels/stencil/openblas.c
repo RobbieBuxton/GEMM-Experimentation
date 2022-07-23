@@ -46,10 +46,6 @@ int openblas_linear_convection_kernel(struct dataobj *restrict u_vec, const floa
 	// printf("Horizontal Transform\n");
  	// print_matrix(transform[1],u_vec->size[1],u_vec->size[1]);
 
-	float* temp = calloc(sizeof(float),(u_vec->size[1])*(u_vec->size[1]));
-
-	// print_matrix(temp,u_vec->size[1],u_vec->size[1]);
-
 	// Alternating stencils like how devito does it
 	float* stencils[2];
 	stencils[0] = u_vec->data;

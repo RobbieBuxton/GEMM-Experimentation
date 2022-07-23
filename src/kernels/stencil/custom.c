@@ -13,59 +13,60 @@ int custom_linear_convection_kernel(struct dataobj *restrict u_vec, const float 
 	
 	float a = 0.1;
 	float b = 0.5;
-	
-	//For convection where | ? ?  | = |      0  0.2*t0|
-	//                     | ? t1 |   | 0.2*t0  0.6*t0|
+	float c = b/2;
 
-	// Results in two slices 
-	// slice -1 | 0 0 0.2 |
-	// slice 0  | 0.2 0.6 |
- 	
-	int row_size =  u_vec->size[1]*sizeof(float);
+	// Alternating stencils like how devito does it
+	float* stencils[2];
+	stencils[0] = u_vec->data;
+	stencils[1] = u_vec->data +  u_vec->size[1]*sizeof(float) * ((u_vec->size[1]));
+
 	
 	float** transform = malloc(sizeof(float*)*2);
 
 	// Vertical Transform               
 	transform[0] = calloc(sizeof(float),(u_vec->size[1])*(u_vec->size[1]));
+	transform[0][0] = c;
+	transform[0][1] = a;
 	for (int i = 1; i < u_vec->size[1] - 1; i ++) {
 		transform[0][(i)*(u_vec->size[1]+1)-1] = a;
+		transform[0][(i)*(u_vec->size[1]+1)] = c;
 		transform[0][(i)*(u_vec->size[1]+1)+1] = a;
 	}
+	transform[0][u_vec->size[1]*u_vec->size[1]-2] = a;
+	transform[0][u_vec->size[1]*u_vec->size[1]-1] = c;
 
 	// printf("Vertical Transform \n");
 	// print_matrix(transform[0],u_vec->size[1],u_vec->size[1]);
 
+	// printf("Stencil\n");
+	// print_matrix(stencils[0],u_vec->size[1],u_vec->size[1]);
+
 	// Horizontal Transform
 	transform[1] = calloc(sizeof(float),(u_vec->size[1])*(u_vec->size[1]));
+	transform[1][0] = c;
+	transform[1][u_vec->size[1]] = a;
 	for (int i = 1; i < u_vec->size[1] - 1; i ++) {
 		transform[1][(i-1)*(u_vec->size[1]+1)+1] = a;
-		transform[1][i*(u_vec->size[1]+1)] = b;
+		transform[1][i*(u_vec->size[1]+1)] = c;
 		transform[1][(i+1)*(u_vec->size[1]+1)-1] = a;
 	}
+	transform[1][u_vec->size[1]*(u_vec->size[1]-1) -1] = a;
+	transform[1][u_vec->size[1]*(u_vec->size[1]) -1] = c;
 
 	// printf("Horizontal Transform\n");
  	// print_matrix(transform[1],u_vec->size[1],u_vec->size[1]);
 
-	float* temp = calloc(sizeof(float),(u_vec->size[1])*(u_vec->size[1]));
-
-	// print_matrix(temp,u_vec->size[1],u_vec->size[1]);
-
-	// Alternating stencils like how devito does it
-	float* stencils[2];
-	stencils[0] = u_vec->data;
-	stencils[1] = u_vec->data + row_size * ((u_vec->size[1]));
-
-	// print_matrix(stencils[0],u_vec->size[1],u_vec->size[1]);
 	// print_matrix(stencils[1],u_vec->size[1],u_vec->size[1]);
 
-	// print_matrix(stencils[0] - u_vec->size[1],u_vec->size[1],u_vec->size[1]);
-	// print_matrix(stencils[1],u_vec->size[1],u_vec->size[1]);
+
 	START_TIMER(section0)
 	for (int t = time_m, t0 = t%2, t1 = (t+1)%2; t <= time_M; t++, t0 = t%2, t1 = (t+1)%2) {
 		// printf("t0: %d t1: %d\n",t0,t1);
 		// printf("Stencil %d\n",t);
 		// print_matrix(stencils[t0],u_vec->size[1],u_vec->size[1]);
 		
+		
+
 		//Multiply vertical  
 		cblas_sgemm(
 		CblasRowMajor,					
@@ -108,6 +109,11 @@ int custom_linear_convection_kernel(struct dataobj *restrict u_vec, const float 
 
 	}
 
+	// char jobvl = 'N';
+	// char jobvr = 'N';
+	// float WR[u_vec->size[1]];
+	// float WI[u_vec->size[1]];
+	// sgeev(&jobvl,&jobvr,u_vec->size[1]*u_vec->size[1],transform[0]);
 
 	free(transform[0]);
 	free(transform[1]);

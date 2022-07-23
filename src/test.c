@@ -21,8 +21,8 @@ int main (int argc, char* argv[]) {
 	// test_chain_contraction(&openblas_chain_contraction_kernel, 9, 200, 0.05, results);
 	
 	//Switching order causes malloc assersion problem :shrug:
-	int size = 10;
-	int iterations = 10;
+	int size = 7;
+	int iterations = 1;
 	printf("Size: %d Iterations: %d\n",size,iterations);
 	printf("####DEVITO####\n");
 	test_devito_stencil_kernel(1,1,iterations,size);
@@ -41,7 +41,6 @@ void test_devito_stencil_kernel(int steps, int step, int iterations, int size) {
 	const float h_y = 0.5;
 	const int x0_blk0_size = 1; 
 	const int y0_blk0_size = 1;
-	// const int time_M = 5;
 	const int time_M = iterations;
 	const int time_m = 0; 
 	const int x_M = size -3 ;
@@ -80,7 +79,6 @@ void test_custom_stencil_kernel(int steps, int step, int iterations, int size) {
 	const float h_y = 0.5;
 	const int x0_blk0_size = 1; 
 	const int y0_blk0_size = 1;
-	// const int time_M = 5;
 	const int time_M = iterations;
 	const int time_m = 0; 
 	const int x_M = 4;
@@ -89,26 +87,26 @@ void test_custom_stencil_kernel(int steps, int step, int iterations, int size) {
 	const int y_m = 0; 
 	struct profiler timers = {.section0 = 0};
 
-	int width = size;
-	int height = size;
+	int width = size-2;
+	int height = size-2;
 
 	//Init openblas
 	struct dataobj openblas_u_vec;
 	init_vector(&openblas_u_vec,width,height*2);
-	fill_stencil(openblas_u_vec.data,width,height,1);
-	((float *)openblas_u_vec.data)[width*2 + 2] = 2; 
-	((float *)openblas_u_vec.data)[width*2 + 3] = 2; 
-	((float *)openblas_u_vec.data)[width*3 + 2] = 2; 
-	((float *)openblas_u_vec.data)[width*3 + 3] = 2;
+	fill_stencil(openblas_u_vec.data,width,height,0);
+	((float *)openblas_u_vec.data)[width*1 + 1] = 2; 
+	((float *)openblas_u_vec.data)[width*1 + 2] = 2; 
+	((float *)openblas_u_vec.data)[width*2 + 1] = 2; 
+	((float *)openblas_u_vec.data)[width*2 + 2] = 2;
 
-	fill_stencil(openblas_u_vec.data+(height)*(width*sizeof(float)),width,height,1);
-	((float *)openblas_u_vec.data)[height*width + width*2 + 2] = 2; 
-	((float *)openblas_u_vec.data)[height*width + width*2 + 3] = 2; 
-	((float *)openblas_u_vec.data)[height*width + width*3 + 2] = 2; 
-	((float *)openblas_u_vec.data)[height*width + width*3 + 3] = 2;
+	fill_stencil(openblas_u_vec.data+(height)*(width*sizeof(float)),width,height,0);
+	((float *)openblas_u_vec.data)[height*width + width*1 + 1] = 2; 
+	((float *)openblas_u_vec.data)[height*width + width*1 + 2] = 2; 
+	((float *)openblas_u_vec.data)[height*width + width*2 + 1] = 2; 
+	((float *)openblas_u_vec.data)[height*width + width*2 + 2] = 2;
 
 	custom_linear_convection_kernel(&openblas_u_vec, dt, h_x, h_y, x0_blk0_size, y0_blk0_size, time_M, time_m, x_M, x_m, y_M, y_m, &timers);
-	printf("openblas timer: %f\n",timers.section0);
+	printf("custom timer: %f\n",timers.section0);
 	free(openblas_u_vec.data);
 }
 
@@ -119,7 +117,6 @@ void test_openblas_stencil_kernel(int steps, int step, int iterations, int size)
 	const float h_y = 0.5;
 	const int x0_blk0_size = 1; 
 	const int y0_blk0_size = 1;
-	// const int time_M = 5;
 	const int time_M = iterations;
 	const int time_m = 0; 
 	const int x_M = 4;
