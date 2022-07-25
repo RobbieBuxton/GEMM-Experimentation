@@ -138,6 +138,50 @@ int custom_linear_convection_kernel(struct dataobj *restrict u_vec, const float 
 
 	printf("sdot %f\n",sdot_(&n,vl,&n,vr,&n));
 
+
+	float* diag = calloc(sizeof(float),n*n);
+
+	for (int i = 0; i < n; i ++) {
+		diag[i + n*i] = wr[i];
+	}
+
+	float* temp = calloc(sizeof(float),n*n);
+	float* output = calloc(sizeof(float),n*n);
+
+	cblas_sgemm(
+	CblasRowMajor,					
+	CblasTrans,						
+	CblasNoTrans,						
+	n,			
+	n,								
+	n,							
+	1.0,										
+	vr, 	
+	n,	
+	diag,		
+	n, 								
+	0.0, 										
+	temp, 	
+	n);
+
+	cblas_sgemm(
+	CblasRowMajor,					
+	CblasNoTrans,						
+	CblasNoTrans,						
+	n,			
+	n,								
+	n,							
+	1.0,										
+	temp, 	
+	n,	
+	vl,		
+	n, 								
+	0.0, 										
+	output, 	
+	n);
+
+	print_matrix(output,n,n);
+
 	free((void*)work);
 	free(transform[0]);
 	free(transform[1]);
