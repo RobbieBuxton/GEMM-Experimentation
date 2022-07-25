@@ -115,9 +115,9 @@ int custom_linear_convection_kernel(struct dataobj *restrict u_vec, const float 
 	float wr[n];
 	float wi[n];
 	int ldvl = n;
-	float vl[ldvl*n];
+	float* vl = calloc(sizeof(float),ldvl*n);
 	int ldvr = n;
-	float vr[ldvr*n];
+	float *vr = calloc(sizeof(float),ldvr*n);
 	int lwork = -1;
 	float wkopt; 
 	float* work; 
@@ -127,12 +127,16 @@ int custom_linear_convection_kernel(struct dataobj *restrict u_vec, const float 
   sgeev_("N", "N", &n, transform[0], &lda, wr, wi, vl, &ldvl, vr, &ldvr,&wkopt, &lwork, &info );
 	lwork = (int)wkopt;
   work = (float*)malloc( lwork*sizeof(float) );
-	sgeev_( "V", "N", &n, transform[0], &lda, wr, wi, vl, &ldvl, vr, &ldvr,work, &lwork, &info );
+	sgeev_( "V", "V", &n, transform[0], &lda, wr, wi, vl, &ldvl, vr, &ldvr,work, &lwork, &info );
 	
 	printf("Eiegen values\n");
 	print_matrix(wr,n,1);
 	printf("Eiegen vectors left\n");
 	print_matrix(vl,n,n);
+	printf("Eiegen vectors right\n");
+	print_matrix(vr,n,n);
+
+	printf("sdot %f\n",sdot_(&n,vl,&n,vr,&n));
 
 	free((void*)work);
 	free(transform[0]);
