@@ -22,17 +22,17 @@ int main (int argc, char* argv[]) {
 	// test_chain_contraction(&openblas_chain_contraction_kernel, 9, 200, 0.05, results);
 	
 	//Switching order causes malloc assersion problem :shrug:
-	int size = 5;
-	int iterations = 1;
+	int size = 10;
+	int iterations = 4;
 	// printf("Size: %d Iterations: %d\n",size,iterations);
-	// printf("####DEVITO####\n");
-	// test_devito_stencil_kernel(1,1,iterations,size);
-	// printf("####OPENBLAS####\n");
-	// test_openblas_stencil_kernel(1,1,iterations,size);
-	// printf("####CUSTOM####\n");
-	// test_custom_stencil_kernel(1,1,iterations,size);
+	printf("####DEVITO####\n");
+	test_devito_stencil_kernel(1,1,iterations-1,size);
+	printf("####OPENBLAS####\n");
+	test_openblas_stencil_kernel(1,1,iterations-1,size);
+	printf("####CUSTOM####\n");
+	test_custom_stencil_kernel(1,1,iterations,size);
 
-	test();
+	// test();
 	return 0;
 }
 

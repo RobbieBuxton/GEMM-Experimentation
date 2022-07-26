@@ -9,6 +9,8 @@
 #include <string.h>
 #include <cblas.h>
 #include "matrix_helpers.h"
+#include <math.h>
+
 
 int custom_linear_convection_kernel(struct dataobj *restrict u_vec, const float dt, const float h_x, const float h_y, const int x0_blk0_size, const int y0_blk0_size, const int time_M, const int time_m, const int x_M, const int x_m, const int y_M, const int y_m, struct profiler * timers) {
 	
@@ -16,103 +18,103 @@ int custom_linear_convection_kernel(struct dataobj *restrict u_vec, const float 
 	float b = 0.5;
 	float c = b/2;
 	int n = u_vec->size[1];
+	int iterations = time_M;
 
-	// Alternating stencils like how devito does it
-	float* stencils[2];
-	stencils[0] = u_vec->data;
-	stencils[1] = u_vec->data +  n*sizeof(float) * ((n));
-
-	
-	float** transform = malloc(sizeof(float*)*2);
+	float* S = u_vec->data;
 
 	// Vertical Transform               
-	transform[0] = calloc(sizeof(float),(n)*(n));
-	transform[0][0] = c;
-	transform[0][1] = a;
+	float* V = calloc(sizeof(float),(n)*(n));
+	V[0] = c;
+	V[1] = a;
 	for (int i = 1; i < n - 1; i ++) {
-		transform[0][(i)*(n+1)-1] = a;
-		transform[0][(i)*(n+1)] = c;
-		transform[0][(i)*(n+1)+1] = a;
+		V[(i)*(n+1)-1] = a;
+		V[(i)*(n+1)] = c;
+		V[(i)*(n+1)+1] = a;
 	}
-	transform[0][n*n-2] = a;
-	transform[0][n*n-1] = c;
+	V[n*n-2] = a;
+	V[n*n-1] = c;
 
 	// printf("Vertical Transform \n");
-	// print_matrix(transform[0],n,n);
+	// print_matrix(V,n,n);
 
 	// printf("Stencil\n");
 	// print_matrix(stencils[0],n,n);
 
 	// Horizontal Transform
-	transform[1] = calloc(sizeof(float),(n)*(n));
-	transform[1][0] = c;
-	transform[1][n] = a;
+	float* H = calloc(sizeof(float),(n)*(n));
+	H[0] = c;
+	H[n] = a;
 	for (int i = 1; i < n - 1; i ++) {
-		transform[1][(i-1)*(n+1)+1] = a;
-		transform[1][i*(n+1)] = c;
-		transform[1][(i+1)*(n+1)-1] = a;
+		H[(i-1)*(n+1)+1] = a;
+		H[i*(n+1)] = c;
+		H[(i+1)*(n+1)-1] = a;
 	}
-	transform[1][n*(n-1) -1] = a;
-	transform[1][n*(n) -1] = c;
+	H[n*(n-1) -1] = a;
+	H[n*(n) -1] = c;
 
 	// printf("Horizontal Transform\n");
- 	// print_matrix(transform[1],n,n);
+ 	// print_matrix(H,n,n);
 
 	// print_matrix(stencils[1],n,n);
 
+	float *PHT = calloc(sizeof(float), n * n);
+	float *DH = calloc(sizeof(float), n * n);
+	float *PHINV = calloc(sizeof(float), n * n);
+
+	float *PVT = calloc(sizeof(float), n * n);
+	float *DV = calloc(sizeof(float), n * n);
+	float *PVINV = calloc(sizeof(float), n * n);
+
+	float *temp1 = calloc(sizeof(float), n * n);
+	float *temp2 = calloc(sizeof(float), n * n);
+	float *result = calloc(sizeof(float), n * n);
+
 
 	START_TIMER(section0)
-	for (int t = time_m, t0 = t%2, t1 = (t+1)%2; t <= time_M; t++, t0 = t%2, t1 = (t+1)%2) {
-		// printf("t0: %d t1: %d\n",t0,t1);
-		// printf("Stencil %d\n",t);
-		// print_matrix(stencils[t0],n,n);
-		
-		
+	diagonalize_matrix(V, n, n, PVT, DV, PVINV);
+	diagonalize_matrix(H, n, n, PHT, DH, PHINV);
 
-		//Multiply vertical  
-		cblas_sgemm(
-		CblasRowMajor,					
-		CblasNoTrans,						
-		CblasNoTrans,						
-		n,			
-		n,								
-		n,							
-		1.0,										
-		transform[0], 	
-		n,	
-		stencils[t0],		
-		n, 								
-		0.0, 										
-		stencils[t1], 	
-		n);
+	float *T = calloc(sizeof(float), n * n);
 
-		//Multiply horizontal
-		cblas_sgemm(
-		CblasRowMajor,					
-		CblasNoTrans,						
-		CblasNoTrans,						
-		n,								
-		n,								
-		n,							
-		1.0,										
-		stencils[t0], 	
-		n,								
-		transform[1],		
-		n, 								
-		1.0, 										
-		stencils[t1], 	
-		n);
+	cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, n, n, n, 1.0, PVINV, n, S, n, 0.0, temp1, n);
+	cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasTrans, n, n, n, 1.0, temp1, n, PHT, n, 0.0, T, n);
+
+	float *b_table = generate_binomial_table(iterations);
+	float *H_eigen = malloc(sizeof(float) * n);
+	float *V_eigen = malloc(sizeof(float) * n);
+	float *HN_eigen = malloc(sizeof(float) * n);
+	for (int i = 0; i < n; i++)
+	{
+		H_eigen[i] = DH[i + i * n];
+		V_eigen[i] = DV[i + i * n];
+		HN_eigen[i] = powf(DH[i + i * n], iterations);
 	}
+	float l;
+	float cumL;
+	for (int i = 0; i < n; i++)
+	{
+		for (int j = 0; j < n; j++)
+		{
+			l = V_eigen[i] / H_eigen[j];
+			cumL = 1;
+			for (int k = 0; k < iterations + 1; k++)
+			{
+				result[i + n * j] += b_table[k] * cumL;
+				cumL *= l;
+			}
+			result[i + n * j] *= T[i + n * j] * HN_eigen[j];
+		}
+	}
+
+	cblas_sgemm(CblasRowMajor, CblasTrans, CblasNoTrans, n, n, n, 1.0, PHT, n, result, n, 0.0, temp1, n);
+	cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, n, n, n, 1.0, temp1, n, PVINV, n, 0.0, temp2, n);
 	STOP_TIMER(section0,timers)
-	
-	if (n < 30) {
-		printf("Stencil %d\n",time_M+1);
-		print_matrix(stencils[(time_M+1)%2],n,n);
-	}
 
-	free(transform[0]);
-	free(transform[1]);
-	free(transform);
+	printf("actual output\n");
+	print_matrix(temp2, n, n);
+
 	
+	free(V);
+	free(H);	
 	return 0;
 }

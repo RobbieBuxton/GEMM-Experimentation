@@ -1,5 +1,4 @@
 #include "matrix_helpers.h"
-#include "custom.h"
 #include <stdio.h>
 #include "../../utils.h"
 #include "sys/time.h"
@@ -10,11 +9,10 @@
 
 void test()
 {
-
-		
+	int iterations = 2;
 	int n = 3;
 
-	float *S = calloc(sizeof(float),n*n);
+	float *S = calloc(sizeof(float), n * n);
 	S[0] = 1;
 	S[1] = 1;
 	S[2] = 1;
@@ -57,76 +55,48 @@ void test()
 
 	float *temp1 = calloc(sizeof(float), n * n);
 	float *temp2 = calloc(sizeof(float), n * n);
-	float *temp3 = calloc(sizeof(float), n * n);
-
-	cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, n, n, n, 1.0, V, n, S, n, 0.0, temp1, n);
-	cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, n, n, n, 1.0, S, n, H, n, 0.0, temp2, n);
-	for (int i = 0; i < n*n; i++) {
-		temp3[i] = temp1[i] + temp2[i];
-	}
-
-	printf("expected output\n");
-	print_matrix(temp3,n,n);
+	float *result = calloc(sizeof(float), n * n);
 
 	diagonalize_matrix(V, n, n, PVT, DV, PVINV);
 	diagonalize_matrix(H, n, n, PHT, DH, PHINV);
 
-	float* T = calloc(sizeof(float), n * n);
+	float *T = calloc(sizeof(float), n * n);
 
 	cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, n, n, n, 1.0, PVINV, n, S, n, 0.0, temp1, n);
 	cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasTrans, n, n, n, 1.0, temp1, n, PHT, n, 0.0, T, n);
 
-	cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, n, n, n, 1.0, DV, n, T, n, 0.0, temp1, n);
-	cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, n, n, n, 1.0, T, n, DH, n, 0.0, temp2, n);
-	for (int i = 0; i < n*n; i++) {
-		temp3[i] = temp1[i] + temp2[i];
+	float *b_table = generate_binomial_table(iterations);
+	float *H_eigen = malloc(sizeof(float) * n);
+	float *V_eigen = malloc(sizeof(float) * n);
+	float *HN_eigen = malloc(sizeof(float) * n);
+	for (int i = 0; i < n; i++)
+	{
+		H_eigen[i] = DH[i + i * n];
+		V_eigen[i] = DV[i + i * n];
+		HN_eigen[i] = powf(DH[i + i * n], iterations);
 	}
-
-	printf("inner sum1\n");
-	print_matrix(temp3,n,n);
-
-	for (int i = 0; i < n*n; i++) {
-		temp3[i] = 0;
-	}
-	float b_table[2] = {1.0,1.0};
-	float l; 
+	float l;
 	float cumL;
-	for (int i = 0; i < n; i++) {
-		for (int j = 0; j < n; j++) {
-			l = DV[i + i*n]/DH[j + j*n];
+	for (int i = 0; i < n; i++)
+	{
+		for (int j = 0; j < n; j++)
+		{
+			l = V_eigen[i] / H_eigen[j];
 			cumL = 1;
-			for (int k = 0; k < 2; k++) {
-				temp3[i + n*j] += b_table[k]*cumL;
+			for (int k = 0; k < iterations + 1; k++)
+			{
+				result[i + n * j] += b_table[k] * cumL;
 				cumL *= l;
 			}
-			temp3[i + n*j] *= T[i + n*j] * powf(DH[j + j*n],1);
-		}	
+			result[i + n * j] *= T[i + n * j] * HN_eigen[j];
+		}
 	}
 
-	printf("inner sum2\n");
-	print_matrix(temp3,n,n);
-
-	cblas_sgemm(CblasRowMajor, CblasTrans, CblasNoTrans, n, n, n, 1.0, PHT, n, temp3, n, 0.0, temp1, n);
+	cblas_sgemm(CblasRowMajor, CblasTrans, CblasNoTrans, n, n, n, 1.0, PHT, n, result, n, 0.0, temp1, n);
 	cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, n, n, n, 1.0, temp1, n, PVINV, n, 0.0, temp2, n);
 
 	printf("actual output\n");
-	print_matrix(temp2,n,n);
-
-
-	// printf("pvinv\n");
-	// print_matrix(PVINV,n,n);
-	// printf("s\n");
-	// print_matrix(S,n,n);
-	// printf("pht\n");
-	// print_matrix(PHT,n,n);
-	// printf("t\n");
-	// print_matrix(T,n,n);
-
-	//Reconstructions the diagonalised matrix to check i haven't broken anything
-	// cblas_sgemm(CblasRowMajor, CblasTrans, CblasNoTrans, n, n, n, 1.0, PVT, n, DH, n, 0.0, temp1, n);
-	// cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, n, n, n, 1.0, temp1, n, PVINV, n, 0.0, temp2, n);
-	// printf("reconstruciton\n");
-	// print_matrix(temp2,n,n);
+	print_matrix(temp2, n, n);
 }
 
 // A = (PT)^T * D * PINV
@@ -164,4 +134,12 @@ void diagonalize_matrix(float *A, int n, int m, float *PT, float *D, float *PINV
 	free((void *)work);
 }
 
-// A*B = C
+// Beware of overflow here
+float *generate_binomial_table(int n)
+{
+	float *table = malloc(sizeof(float) * n + 1);
+	table[0] = 1;
+	for (int k = 0; k < n; ++k)
+		table[k + 1] = (table[k] * (n - k)) / (k + 1);
+	return table;
+}
