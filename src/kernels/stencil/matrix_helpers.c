@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <cblas.h>
+#include <math.h>
 
 void test()
 {
@@ -81,7 +82,28 @@ void test()
 		temp3[i] = temp1[i] + temp2[i];
 	}
 
-	printf("inner sum\n");
+	printf("inner sum1\n");
+	print_matrix(temp3,n,n);
+
+	for (int i = 0; i < n*n; i++) {
+		temp3[i] = 0;
+	}
+	float b_table[2] = {1.0,1.0};
+	float l; 
+	float cumL;
+	for (int i = 0; i < n; i++) {
+		for (int j = 0; j < n; j++) {
+			l = DV[i + i*n]/DH[j + j*n];
+			cumL = 1;
+			for (int k = 0; k < 2; k++) {
+				temp3[i + n*j] += b_table[k]*cumL;
+				cumL *= l;
+			}
+			temp3[i + n*j] *= T[i + n*j] * powf(DH[j + j*n],1);
+		}	
+	}
+
+	printf("inner sum2\n");
 	print_matrix(temp3,n,n);
 
 	cblas_sgemm(CblasRowMajor, CblasTrans, CblasNoTrans, n, n, n, 1.0, PHT, n, temp3, n, 0.0, temp1, n);
