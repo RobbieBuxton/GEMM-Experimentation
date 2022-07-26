@@ -1,18 +1,16 @@
 .DEFAULT_GOAL := run
 
 CC=gcc
-CFLAGS=  -O3 -g -fPIC -Wall -std=c99 -march=native -Wno-unused-result -Wno-unused-variable -Wno-unused-but-set-variable -ffast-math -fopenmp
-LIBS= -lblas
-OBJ = hellomake.o hellofunc.o 
-
+CFLAGS= -O3 -g -fPIC -Wall -std=c99 -march=native -Wno-unused-result -Wno-unused-variable -Wno-unused-but-set-variable -ffast-math -fopenmp
+LIBS= -lopenblas -lm
 run: clean test
 	./test
 
-test: test.o utils.o kernels/stencil/openblas.o kernels/stencil/devito.o
-	$(CC) -o $@ $^ $(CFLAGS) $(LIBS)
+test: test.o utils.o kernels/stencil/openblas.o kernels/stencil/devito.o kernels/stencil/matrix_helpers.o kernels/stencil/custom.o
+	$(CC) -o  $@ $^ $(CFLAGS) $(LIBS)
 
 %.o: %.c
 	$(CC) -c -o $@ $< $(CFLAGS)
 
 clean: 
-	rm -rf test.o utils.o kernels/stencil/openblas.o kernels/stencil/devito.o
+	rm -rf test.o utils.o kernels/stencil/openblas.o kernels/stencil/devito.o kernels/stencil/custom.o kernels/stencil/matrix_helpers.o
