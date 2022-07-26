@@ -6,11 +6,11 @@ LIBS= -lopenblas
 run: clean test
 	./test
 
-test: test.o utils.o kernels/stencil/openblas.o kernels/stencil/devito.o kernels/stencil/custom.o
+test: test.o utils.o kernels/stencil/openblas.o kernels/stencil/devito.o kernels/stencil/custom.o kernels/stencil/matrix_helpers.o
 	$(CC) -o $@ $^ $(CFLAGS) $(LIBS)
 
 %.o: %.c
 	$(CC) -c -o $@ $< $(CFLAGS)
 
 clean: 
-	rm -rf test.o utils.o kernels/stencil/openblas.o kernels/stencil/devito.o kernels/stencil/custom.o
+	rm -rf test.o utils.o kernels/stencil/openblas.o kernels/stencil/devito.o kernels/stencil/custom.o kernels/stencil/matrix_helpers.o

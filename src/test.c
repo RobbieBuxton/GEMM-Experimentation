@@ -12,6 +12,7 @@
 #include "kernels/stencil/devito.h"
 #include "kernels/stencil/openblas.h"
 #include "kernels/stencil/custom.h"
+#include "kernels/stencil/matrix_helpers.h"
 
 
 int main (int argc, char* argv[]) {
@@ -28,9 +29,10 @@ int main (int argc, char* argv[]) {
 	// test_devito_stencil_kernel(1,1,iterations,size);
 	// printf("####OPENBLAS####\n");
 	// test_openblas_stencil_kernel(1,1,iterations,size);
-	printf("####CUSTOM####\n");
-	test_custom_stencil_kernel(1,1,iterations,size);
-	
+	// printf("####CUSTOM####\n");
+	// test_custom_stencil_kernel(1,1,iterations,size);
+
+	test();
 	return 0;
 }
 

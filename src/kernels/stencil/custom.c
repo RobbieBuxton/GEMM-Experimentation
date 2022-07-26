@@ -8,6 +8,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <cblas.h>
+#include "matrix_helpers.h"
 
 int custom_linear_convection_kernel(struct dataobj *restrict u_vec, const float dt, const float h_x, const float h_y, const int x0_blk0_size, const int y0_blk0_size, const int time_M, const int time_m, const int x_M, const int x_m, const int y_M, const int y_m, struct profiler * timers) {
 	
@@ -104,85 +105,11 @@ int custom_linear_convection_kernel(struct dataobj *restrict u_vec, const float 
 	}
 	STOP_TIMER(section0,timers)
 	
-	// if (n < 30) {
-	// 	printf("Stencil %d\n",time_M+1);
-	// 	print_matrix(stencils[(time_M+1)%2],n,n);
-	// }
-
-	char jobvl = 'N';
-	char jobvr = 'N';
-	int lda = n;
-	float wr[n];
-	float wi[n];
-	int ldvl = n;
-	float* vl = calloc(sizeof(float),ldvl*n);
-	int ldvr = n;
-	float *vr = calloc(sizeof(float),ldvr*n);
-	int lwork = -1;
-	float wkopt; 
-	float* work; 
-	int info;
-
-	print_matrix(transform[0],n,n);
-  sgeev_("N", "N", &n, transform[0], &lda, wr, wi, vl, &ldvl, vr, &ldvr,&wkopt, &lwork, &info );
-	lwork = (int)wkopt;
-  work = (float*)malloc( lwork*sizeof(float) );
-	sgeev_( "V", "V", &n, transform[0], &lda, wr, wi, vl, &ldvl, vr, &ldvr,work, &lwork, &info );
-	
-	printf("Eiegen values\n");
-	print_matrix(wr,n,1);
-	printf("Eiegen vectors left\n");
-	print_matrix(vl,n,n);
-	printf("Eiegen vectors right\n");
-	print_matrix(vr,n,n);
-
-	printf("sdot %f\n",sdot_(&n,vl,&n,vr,&n));
-
-
-	float* diag = calloc(sizeof(float),n*n);
-
-	for (int i = 0; i < n; i ++) {
-		diag[i + n*i] = wr[i];
+	if (n < 30) {
+		printf("Stencil %d\n",time_M+1);
+		print_matrix(stencils[(time_M+1)%2],n,n);
 	}
 
-	float* temp = calloc(sizeof(float),n*n);
-	float* output = calloc(sizeof(float),n*n);
-
-	cblas_sgemm(
-	CblasRowMajor,					
-	CblasTrans,						
-	CblasNoTrans,						
-	n,			
-	n,								
-	n,							
-	1.0,										
-	vr, 	
-	n,	
-	diag,		
-	n, 								
-	0.0, 										
-	temp, 	
-	n);
-
-	cblas_sgemm(
-	CblasRowMajor,					
-	CblasNoTrans,						
-	CblasNoTrans,						
-	n,			
-	n,								
-	n,							
-	1.0,										
-	temp, 	
-	n,	
-	vl,		
-	n, 								
-	0.0, 										
-	output, 	
-	n);
-
-	print_matrix(output,n,n);
-
-	free((void*)work);
 	free(transform[0]);
 	free(transform[1]);
 	free(transform);
