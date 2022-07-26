@@ -83,12 +83,17 @@ int custom_linear_convection_kernel(struct dataobj *restrict u_vec, const float 
 	float *H_eigen = malloc(sizeof(float) * n);
 	float *V_eigen = malloc(sizeof(float) * n);
 	float *HN_eigen = malloc(sizeof(float) * n);
+	
+	printf("H^n eigen_values\n");
+	float cum_sum = 0.0;
 	for (int i = 0; i < n; i++)
 	{
+		cum_sum += DH[i + i * n];
 		H_eigen[i] = DH[i + i * n];
 		V_eigen[i] = DV[i + i * n];
 		HN_eigen[i] = powf(DH[i + i * n], iterations);
 	}
+
 	float l;
 	float cumL;
 	for (int i = 0; i < n; i++)
@@ -102,6 +107,7 @@ int custom_linear_convection_kernel(struct dataobj *restrict u_vec, const float 
 				result[i + n * j] += b_table[k] * cumL;
 				cumL *= l;
 			}
+			printf("result[%d][%d] = %f * %f * %f\n",i,j,result[i + n * j],HN_eigen[j],T[i + n * j]);
 			result[i + n * j] *= T[i + n * j] * HN_eigen[j];
 		}
 	}
@@ -110,8 +116,11 @@ int custom_linear_convection_kernel(struct dataobj *restrict u_vec, const float 
 	cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, n, n, n, 1.0, temp1, n, PVINV, n, 0.0, temp2, n);
 	STOP_TIMER(section0,timers)
 
-	printf("actual output\n");
-	print_matrix(temp2, n, n);
+	if (n < 25) {
+		printf("actual output\n");
+		print_matrix(temp2, n, n);
+	}
+
 
 	
 	free(V);
