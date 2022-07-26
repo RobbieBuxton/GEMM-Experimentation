@@ -11,63 +11,22 @@ void test() {
 
 	int n = 3;
 
-	float* target = calloc(sizeof(float),n*n);
-	target[0] = 1;
-	target[3] = 2;
-	target[6] = 3;
-	target[1] = 4;
-	target[4] = 5;
-	target[7] = 6;
-	target[2] = 7;
-	target[5] = 8;
-	target[8] = 9;
+	float* H = calloc(sizeof(float),n*n);
+	H[0] = 0.25;
+	H[1] = 0.1;
+	H[2] = 0;
+	H[3] = 0.1;
+	H[4] = 0.25;
+	H[5] = 0.1;
+	H[6] = 0;
+	H[7] = 0.1;
+	H[8] = 0.25;
 
-	char jobvl = 'N';
-	char jobvr = 'N';
-	int lda = n;
-	float wr[n];
-	float wi[n];
-	int ldvl = n;
-	float* vl = calloc(sizeof(float),ldvl*n);
-	int ldvr = n;
-	float *vr = calloc(sizeof(float),ldvr*n);
-	int lwork = -1;
-	float wkopt; 
-	float* work; 
-	int info;
+	float *PT = calloc(sizeof(float),n*n);
+	float *D = calloc(sizeof(float),n*n);
+	float* PINV = calloc(sizeof(float),n*n);
 
-	print_matrix(target,n,n);
-  sgeev_("N", "N", &n, target, &lda, wr, wi, vl, &ldvl, vr, &ldvr,&wkopt, &lwork, &info );
-	lwork = (int)wkopt;
-  work = (float*)malloc( lwork*sizeof(float) );
-	sgeev_( "V", "V", &n, target, &lda, wr, wi, vl, &ldvl, vr, &ldvr,work, &lwork, &info );
-	
-	printf("Eiegen values\n");
-	print_matrix(wr,n,1);
-	printf("Eiegen vectors left\n");
-	print_matrix(vl,n,n);
-	printf("Eiegen vectors right\n");
-	print_matrix(vr,n,n);
-
-	int t = 1;
-	float p = 0;
-	//Ok this isn't great but not actually sure about the maths of why exactly it's scaled by the dot product here to denormalise but stack overflow told me to do it and it works: https://stackoverflow.com/questions/72069026/matrix-diagonalization-and-basis-change-with-geev 
-	for (int i = 0; i < n; i++) {
-		p = 1/sdot_(&n,vl+i*n,&t,vr+i*n,&t);
-		vl[i*n] *= p;
-		vl[i*n+1] *= p;
-		vl[i*n+2] *= p;
-	}
-
-	printf("Eiegen vectors right scaled\n");
-	print_matrix(vr,n,n);
-
-
-	float* diag = calloc(sizeof(float),n*n);
-
-	for (int i = 0; i < n; i ++) {
-		diag[i + n*i] = wr[i];
-	}
+	diagonalize_matrix(H,n,n,PT,D,PINV);
 
 	float* temp = calloc(sizeof(float),n*n);
 	float* output = calloc(sizeof(float),n*n);
@@ -80,9 +39,9 @@ void test() {
 	n,								
 	n,							
 	1.0,										
-	vr, 	
+	PT, 	
 	n,	
-	diag,		
+	D,		
 	n, 								
 	0.0, 										
 	temp, 	
@@ -98,7 +57,7 @@ void test() {
 	1.0,										
 	temp, 	
 	n,	
-	vl,		
+	PINV,		
 	n, 								
 	0.0, 										
 	output, 	
@@ -106,6 +65,37 @@ void test() {
 
 	printf("Output\n");
 	print_matrix(output,n,n);
+}
 
+// A = (PT)^T * D * PINV
+void diagonalize_matrix(float* A, int n, int m, float* PT, float* D, float* PINV) {
+
+	float real_eigen_values[n];
+	float im_eigen_values[n];
+	int lwork = -1;
+	float wkopt; 
+	float* work; 
+	int info;
+
+	print_matrix(A,n,n);
+  sgeev_("N", "N", &n, A, &n, real_eigen_values, im_eigen_values, PT, &n, PINV, &n, &wkopt, &lwork, &info );
+	lwork = (int)wkopt;
+  work = (float*)malloc( lwork*sizeof(float) );
+	sgeev_( "V", "V", &n, A, &n, real_eigen_values, im_eigen_values, PT, &n, PINV, &n, work, &lwork, &info );
+
+	int column_spacing = 1;
+	float p;
+	//Ok this isn't great but not actually sure about the maths of why exactly it's scaled by the dot product here to denormalise but stack overflow told me to do it and it works: https://stackoverflow.com/questions/72069026/matrix-diagonalization-and-basis-change-with-geev 
+	for (int i = 0; i < n; i++) {
+		p = 1/sdot_(&n,PT+i*n,&column_spacing,PINV+i*n,&column_spacing);
+		PT[i*n] *= p;
+		PT[i*n+1] *= p;
+		PT[i*n+2] *= p;
+	}
+
+	for (int i = 0; i < n; i ++) {
+		D[i + n*i] = real_eigen_values[i];
+	}
+	
 	free((void*)work);
 }
