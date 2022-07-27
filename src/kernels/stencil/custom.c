@@ -19,7 +19,6 @@ int custom_linear_convection_kernel(struct dataobj *restrict u_vec, const float 
 	float c = b/2;
 	int n = u_vec->size[1];
 	int iterations = time_M;
-
 	float* S = u_vec->data;
 
 	// Create Vertical Transform               
@@ -50,11 +49,9 @@ int custom_linear_convection_kernel(struct dataobj *restrict u_vec, const float 
 	float *PHT = calloc(sizeof(float), n * n);
 	float *DH = calloc(sizeof(float), n * n);
 	float *PHINV = calloc(sizeof(float), n * n);
-
 	float *PVT = calloc(sizeof(float), n * n);
 	float *DV = calloc(sizeof(float), n * n);
 	float *PVINV = calloc(sizeof(float), n * n);
-
 	float *temp1 = calloc(sizeof(float), n * n);
 	float *temp2 = calloc(sizeof(float), n * n);
 	float *result = calloc(sizeof(float), n * n);
@@ -98,10 +95,15 @@ int custom_linear_convection_kernel(struct dataobj *restrict u_vec, const float 
 		printf("actual output\n");
 		print_matrix(temp2, n, n);
 	}
-
-
-	
-	free(V);
 	free(H);	
+	free(PHT);
+	free(DH);
+	free(PHINV);
+	free(V);
+	free(PVT);
+	free(DV);
+	free(PVINV);
+	free(temp1);
+	free(temp2);
 	return 0;
 }
