@@ -84,14 +84,10 @@ int custom_linear_convection_kernel(struct dataobj *restrict u_vec, const float 
 	float *V_eigen = malloc(sizeof(float) * n);
 	float *HN_eigen = malloc(sizeof(float) * n);
 	
-	printf("H^n eigen_values\n");
-	float cum_sum = 0.0;
 	for (int i = 0; i < n; i++)
 	{
-		cum_sum += DH[i + i * n];
 		H_eigen[i] = DH[i + i * n];
 		V_eigen[i] = DV[i + i * n];
-		HN_eigen[i] = powf(DH[i + i * n], iterations);
 	}
 
 	float l;
@@ -100,15 +96,8 @@ int custom_linear_convection_kernel(struct dataobj *restrict u_vec, const float 
 	{
 		for (int j = 0; j < n; j++)
 		{
-			l = V_eigen[i] / H_eigen[j];
-			cumL = 1;
-			for (int k = 0; k < iterations + 1; k++)
-			{
-				result[i + n * j] += b_table[k] * cumL;
-				cumL *= l;
-			}
-			printf("result[%d][%d] = %f * %f * %f\n",i,j,result[i + n * j],HN_eigen[j],T[i + n * j]);
-			result[i + n * j] *= T[i + n * j] * HN_eigen[j];
+			l = H_eigen[i] + V_eigen[j];
+			result[i + n * j] = T[i + n * j] * powf(l, iterations);
 		}
 	}
 
