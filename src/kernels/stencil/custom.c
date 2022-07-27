@@ -22,7 +22,7 @@ int custom_linear_convection_kernel(struct dataobj *restrict u_vec, const float 
 
 	float* S = u_vec->data;
 
-	// Vertical Transform               
+	// Create Vertical Transform               
 	float* V = calloc(sizeof(float),(n)*(n));
 	V[0] = c;
 	V[1] = a;
@@ -34,13 +34,7 @@ int custom_linear_convection_kernel(struct dataobj *restrict u_vec, const float 
 	V[n*n-2] = a;
 	V[n*n-1] = c;
 
-	// printf("Vertical Transform \n");
-	// print_matrix(V,n,n);
-
-	// printf("Stencil\n");
-	// print_matrix(stencils[0],n,n);
-
-	// Horizontal Transform
+	// Create Horizontal Transform
 	float* H = calloc(sizeof(float),(n)*(n));
 	H[0] = c;
 	H[n] = a;
@@ -52,10 +46,6 @@ int custom_linear_convection_kernel(struct dataobj *restrict u_vec, const float 
 	H[n*(n-1) -1] = a;
 	H[n*(n) -1] = c;
 
-	// printf("Horizontal Transform\n");
- 	// print_matrix(H,n,n);
-
-	// print_matrix(stencils[1],n,n);
 
 	float *PHT = calloc(sizeof(float), n * n);
 	float *DH = calloc(sizeof(float), n * n);
@@ -76,6 +66,7 @@ int custom_linear_convection_kernel(struct dataobj *restrict u_vec, const float 
 
 	float *T = calloc(sizeof(float), n * n);
 
+  //Combine PV^-1 * S * PH = T
 	cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, n, n, n, 1.0, PVINV, n, S, n, 0.0, temp1, n);
 	cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasTrans, n, n, n, 1.0, temp1, n, PHT, n, 0.0, T, n);
 
@@ -83,26 +74,19 @@ int custom_linear_convection_kernel(struct dataobj *restrict u_vec, const float 
 	float *H_eigen = malloc(sizeof(float) * n);
 	float *V_eigen = malloc(sizeof(float) * n);
 	float *HN_eigen = malloc(sizeof(float) * n);
+	
+	// Converts the diagonal to eigen vectors
 	for (int i = 0; i < n; i++)
 	{
 		H_eigen[i] = DH[i + i * n];
 		V_eigen[i] = DV[i + i * n];
-		HN_eigen[i] = powf(DH[i + i * n], iterations);
 	}
-	float l;
-	float cumL;
+
 	for (int i = 0; i < n; i++)
 	{
 		for (int j = 0; j < n; j++)
 		{
-			l = V_eigen[i] / H_eigen[j];
-			cumL = 1;
-			for (int k = 0; k < iterations + 1; k++)
-			{
-				result[i + n * j] += b_table[k] * cumL;
-				cumL *= l;
-			}
-			result[i + n * j] *= T[i + n * j] * HN_eigen[j];
+			result[i + n * j] = T[i + n * j] * powf(H_eigen[i] + V_eigen[j], iterations);
 		}
 	}
 
@@ -110,8 +94,11 @@ int custom_linear_convection_kernel(struct dataobj *restrict u_vec, const float 
 	cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, n, n, n, 1.0, temp1, n, PVINV, n, 0.0, temp2, n);
 	STOP_TIMER(section0,timers)
 
-	printf("actual output\n");
-	print_matrix(temp2, n, n);
+	if (n < 25) {
+		printf("actual output\n");
+		print_matrix(temp2, n, n);
+	}
+
 
 	
 	free(V);
