@@ -12,7 +12,7 @@
 #include <math.h>
 
 
-int custom_linear_convection_kernel(struct dataobj *restrict u_vec, const float dt, const float h_x, const float h_y, const int x0_blk0_size, const int y0_blk0_size, const int time_M, const int time_m, const int x_M, const int x_m, const int y_M, const int y_m, struct profiler * timers) {
+int custom_linear_convection_kernel(struct dataobj *restrict u_vec, const float dt, const float h_x, const float h_y, const int x0_blk0_size, const int y0_blk0_size, const int time_M, const int time_m, const int x_M, const int x_m, const int y_M, const int y_m, struct profiler * timers, float * result) {
 	
 	float a = 0.1;
 	float b = 0.5;
@@ -54,8 +54,6 @@ int custom_linear_convection_kernel(struct dataobj *restrict u_vec, const float 
 	float *PVINV = calloc(sizeof(float), n * n);
 	float *temp1 = calloc(sizeof(float), n * n);
 	float *temp2 = calloc(sizeof(float), n * n);
-	float *result = calloc(sizeof(float), n * n);
-
 
 	START_TIMER(section0)
 	diagonalize_matrix2(V, n, n, PVT, DV, PVINV);
@@ -83,18 +81,18 @@ int custom_linear_convection_kernel(struct dataobj *restrict u_vec, const float 
 	{
 		for (int j = 0; j < n; j++)
 		{
-			result[i + n * j] = T[i + n * j] * powf(H_eigen[i] + V_eigen[j], iterations);
+			temp2[i + n * j] = T[i + n * j] * powf(H_eigen[i] + V_eigen[j], iterations);
 		}
 	}
 
-	cblas_sgemm(CblasRowMajor, CblasTrans, CblasNoTrans, n, n, n, 1.0, PHT, n, result, n, 0.0, temp1, n);
-	cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, n, n, n, 1.0, temp1, n, PVINV, n, 0.0, temp2, n);
+	cblas_sgemm(CblasRowMajor, CblasTrans, CblasNoTrans, n, n, n, 1.0, PHT, n, temp2, n, 0.0, temp1, n);
+	cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, n, n, n, 1.0, temp1, n, PVINV, n, 0.0, result, n);
 	STOP_TIMER(section0,timers)
 
-	if (n < 25) {
-		printf("actual output\n");
-		print_matrix(temp2, n, n);
-	}
+	// if (n < 25) {
+	// 	printf("actual output\n");
+	// 	print_matrix(result, n, n);
+	// }
 	free(H);	
 	free(PHT);
 	free(DH);
