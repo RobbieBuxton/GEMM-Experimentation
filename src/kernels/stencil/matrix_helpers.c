@@ -1,3 +1,5 @@
+#define _USE_MATH_DEFINES
+#include <math.h>
 #include "matrix_helpers.h"
 #include <stdio.h>
 #include "../../utils.h"
@@ -5,45 +7,53 @@
 #include <stdlib.h>
 #include <string.h>
 #include <cblas.h>
-#include <math.h>
+
+#ifndef M_PI
+    #define M_PI 3.14159265358979323846
+#endif
+
 
 void test()
 {
-	int iterations = 2;
-	int n = 3;
+	int iterations = 1;
+	int n = 5;
+	float a = 0.1;
+	float b = 0.5;
+	float c = b/2;
 
 	float *S = calloc(sizeof(float), n * n);
-	S[0] = 1;
-	S[1] = 1;
-	S[2] = 1;
-	S[3] = 1;
-	S[4] = 2;
-	S[5] = 2;
-	S[6] = 1;
-	S[7] = 2;
-	S[8] = 2;
+	for (int i = 0; i < n*n; i++) {
+		S[i] = 1;
+	}
+	S[n + 1] = 2;
+	S[n + 2] = 2;
+	S[2*n + 1] = 2;
+	S[2*n + 2] = 2;
 
-	float *V = calloc(sizeof(float), n * n);
-	V[0] = 0.25;
-	V[1] = 0.1;
-	V[2] = 0;
-	V[3] = 0.1;
-	V[4] = 0.25;
-	V[5] = 0.1;
-	V[6] = 0;
-	V[7] = 0.1;
-	V[8] = 0.25;
+	// Create Vertical Transform               
+	float* V = calloc(sizeof(float),(n)*(n));
+	V[0] = c;
+	V[1] = a;
+	for (int i = 1; i < n - 1; i ++) {
+		V[(i)*(n+1)-1] = a;
+		V[(i)*(n+1)] = c;
+		V[(i)*(n+1)+1] = a;
+	}
+	V[n*n-2] = a;
+	V[n*n-1] = c;
 
-	float *H = calloc(sizeof(float), n * n);
-	H[0] = 0.25;
-	H[1] = 0.1;
-	H[2] = 0;
-	H[3] = 0.1;
-	H[4] = 0.25;
-	H[5] = 0.1;
-	H[6] = 0;
-	H[7] = 0.1;
-	H[8] = 0.25;
+	// Create Horizontal Transform
+	float* H = calloc(sizeof(float),(n)*(n));
+	H[0] = c;
+	H[n] = a;
+	for (int i = 1; i < n - 1; i ++) {
+		H[(i-1)*(n+1)+1] = a;
+		H[i*(n+1)] = c;
+		H[(i+1)*(n+1)-1] = a;
+	}
+	H[n*(n-1) -1] = a;
+	H[n*(n) -1] = c;
+
 
 	float *PHT = calloc(sizeof(float), n * n);
 	float *DH = calloc(sizeof(float), n * n);
@@ -54,49 +64,33 @@ void test()
 	float *PVINV = calloc(sizeof(float), n * n);
 
 	float *temp1 = calloc(sizeof(float), n * n);
+	float *result1 = calloc(sizeof(float), n * n);
+
 	float *temp2 = calloc(sizeof(float), n * n);
-	float *result = calloc(sizeof(float), n * n);
+	float *result2 = calloc(sizeof(float), n * n);
+
 
 	diagonalize_matrix(V, n, n, PVT, DV, PVINV);
-	diagonalize_matrix(H, n, n, PHT, DH, PHINV);
+	diagonalize_matrix2(H, n, n, PHT, DH, PHINV);
 
-	float *T = calloc(sizeof(float), n * n);
+	printf("Lapack method\n");
+	print_matrix(PVT,n,n);
+	print_matrix(DV,n,n);
+	print_matrix(PVINV,n,n);
+	cblas_sgemm(CblasRowMajor, CblasTrans, CblasNoTrans, n, n, n, 1.0, PVT, n, DV, n, 0.0, temp1, n);
+	cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, n, n, n, 1.0, temp1, n, PVINV, n, 0.0, result1, n);
+	printf("Lapack result\n");
+	print_matrix(result1,n,n);
 
-	cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, n, n, n, 1.0, PVINV, n, S, n, 0.0, temp1, n);
-	cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasTrans, n, n, n, 1.0, temp1, n, PHT, n, 0.0, T, n);
+	printf("custom method\n");
+	print_matrix(PHT,n,n);
+	print_matrix(DH,n,n);
+	print_matrix(PHINV,n,n);
+	cblas_sgemm(CblasRowMajor, CblasTrans, CblasNoTrans, n, n, n, 1.0, PHT, n, DH, n, 0.0, temp1, n);
+	cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, n, n, n, 1.0, temp1, n, PHINV, n, 0.0, result1, n);
+	printf("Custom result\n");
+	print_matrix(result1,n,n);
 
-	float *b_table = generate_binomial_table(iterations);
-	float *H_eigen = malloc(sizeof(float) * n);
-	float *V_eigen = malloc(sizeof(float) * n);
-	float *HN_eigen = malloc(sizeof(float) * n);
-	for (int i = 0; i < n; i++)
-	{
-		H_eigen[i] = DH[i + i * n];
-		V_eigen[i] = DV[i + i * n];
-		HN_eigen[i] = powf(DH[i + i * n], iterations);
-	}
-	float l;
-	float cumL;
-	for (int i = 0; i < n; i++)
-	{
-		for (int j = 0; j < n; j++)
-		{
-			l = V_eigen[i] / H_eigen[j];
-			cumL = 1;
-			for (int k = 0; k < iterations + 1; k++)
-			{
-				result[i + n * j] += b_table[k] * cumL;
-				cumL *= l;
-			}
-			result[i + n * j] *= T[i + n * j] * HN_eigen[j];
-		}
-	}
-
-	cblas_sgemm(CblasRowMajor, CblasTrans, CblasNoTrans, n, n, n, 1.0, PHT, n, result, n, 0.0, temp1, n);
-	cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, n, n, n, 1.0, temp1, n, PVINV, n, 0.0, temp2, n);
-
-	printf("actual output\n");
-	print_matrix(temp2, n, n);
 }
 
 // A = (PT)^T * D * PINV
@@ -132,6 +126,44 @@ void diagonalize_matrix(float *A, int n, int m, float *PT, float *D, float *PINV
 	}
 
 	free((void *)work);
+}
+
+void diagonalize_matrix2(float *A, int n, int m, float *PT, float *D, float *PINV)
+{
+	float a = A[n];
+	float b = A[n + 1];
+	float c = A[n + 2];
+	// printf("%f %f %f\n",a,b,c);
+	float *eigen_values = malloc(sizeof(float) * n);
+	for (int i = 0; i < n; i++)
+	{
+		eigen_values[i] = b + 2 * sqrtf(a * c) * cosf(((n - (i)) * M_PI) / (n + 1));
+	}
+
+	for (int j = 0; j < n; j++)
+	{
+		for (int i = 0; i < n; i++)
+		{
+			PT[j * n + i] = powf((a/c),((n-i)/2.0))*sinf(((n-i)*(n-j)*M_PI)/(n+1));
+			PINV[i * n + j] = powf((c/a),((n-i)/2.0))*sinf(((n-i)*(n-j)*M_PI)/(n+1));
+		}
+	}
+
+	int column_spacing = 1;
+	float p;
+	// scalling
+	for (int i = 0; i < n; i++)
+	{
+		p = 1 / sdot_(&n, PT + i * n, &column_spacing, PINV + i * n, &column_spacing);
+		for (int k = 0; k < n; k++){
+			PT[i * n + k] *= p;
+		}
+	}
+
+	for (int i = 0; i < n; i++)
+	{
+		D[i + n * i] = eigen_values[i];
+	}
 }
 
 // Beware of overflow here

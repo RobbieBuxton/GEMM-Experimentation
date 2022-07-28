@@ -26,43 +26,48 @@ int devito_linear_convection_kernel(struct dataobj *restrict u_vec, const float 
 
   float a = 0.1;
   float b = 0.5;
+	int nthreads = 8;
 	START_TIMER(section0)
+	
   for (int time = time_m, t0 = (time)%(2), t1 = (time + 1)%(2); time <= time_M; time += 1, t0 = (time)%(2), t1 = (time + 1)%(2))
   {
 		// printf("time: %d\n",time);
 		// print_matrix((float*)u[t0],u_vec->size[1],u_vec->size[2]);
 
     /* Begin section0 */
-    
-    for (int x0_blk0 = x_m; x0_blk0 <= x_M; x0_blk0 += x0_blk0_size)
-    {
-      for (int y0_blk0 = y_m; y0_blk0 <= y_M; y0_blk0 += y0_blk0_size)
-      {
-        for (int x = x0_blk0; x <= MIN(x0_blk0 + x0_blk0_size - 1, x_M); x += 1)
-        {
-          #pragma omp simd aligned(u:32)
-          for (int y = y0_blk0; y <= MIN(y0_blk0 + y0_blk0_size - 1, y_M); y += 1)
-          {
-						// printf("u[t1][%d][%d] = %f(%+f*%+f %+f*%+f %+f*%+f %+f*%+f %+f*%+f)\n",
-						// 			x + 1,
-						// 			y + 1,
-						// 			dt,
-						// 			-r0,
-						// 			(-u[t0][x][y + 1]),
-						// 			-r0,
-						// 			u[t0][x + 1][y + 1],
-						// 			- r1,
-						// 			(-u[t0][x + 1][y]),
-						// 			-r1,
-						// 			u[t0][x + 1][y + 1],
-						// 			r2,
-						// 			u[t0][x + 1][y + 1]);
+		#pragma omp parallel num_threads(nthreads)
+		{
+			#pragma omp for collapse(1) schedule(static,1)
+			for (int x0_blk0 = x_m; x0_blk0 <= x_M; x0_blk0 += x0_blk0_size)
+			{
+				for (int y0_blk0 = y_m; y0_blk0 <= y_M; y0_blk0 += y0_blk0_size)
+				{
+					for (int x = x0_blk0; x <= MIN(x0_blk0 + x0_blk0_size - 1, x_M); x += 1)
+					{
+						#pragma omp simd aligned(u:32)
+						for (int y = y0_blk0; y <= MIN(y0_blk0 + y0_blk0_size - 1, y_M); y += 1)
+						{
+							// printf("u[t1][%d][%d] = %f(%+f*%+f %+f*%+f %+f*%+f %+f*%+f %+f*%+f)\n",
+							// 			x + 1,
+							// 			y + 1,
+							// 			dt,
+							// 			-r0,
+							// 			(-u[t0][x][y + 1]),
+							// 			-r0,
+							// 			u[t0][x + 1][y + 1],
+							// 			- r1,
+							// 			(-u[t0][x + 1][y]),
+							// 			-r1,
+							// 			u[t0][x + 1][y + 1],
+							// 			r2,
+							// 			u[t0][x + 1][y + 1]);
 
-            u[t1][x + 1][y + 1] = a*(u[t0][x][y + 1]) + a*(u[t0][x + 1][y]) + a*(u[t0][x + 2][y + 1]) + a*(u[t0][x + 1][y + 2]) + b*u[t0][x + 1][y + 1];
-          }
-        }
-      }
-    }
+							u[t1][x + 1][y + 1] = a*(u[t0][x][y + 1]) + a*(u[t0][x + 1][y]) + a*(u[t0][x + 2][y + 1]) + a*(u[t0][x + 1][y + 2]) + b*u[t0][x + 1][y + 1];
+						}
+					}
+				}
+			}
+		}
  
     /* End section0 */
   }
