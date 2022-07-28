@@ -58,8 +58,8 @@ int custom_linear_convection_kernel(struct dataobj *restrict u_vec, const float 
 
 
 	START_TIMER(section0)
-	diagonalize_matrix(V, n, n, PVT, DV, PVINV);
-	diagonalize_matrix(H, n, n, PHT, DH, PHINV);
+	diagonalize_matrix2(V, n, n, PVT, DV, PVINV);
+	diagonalize_matrix2(H, n, n, PHT, DH, PHINV);
 
 	float *T = calloc(sizeof(float), n * n);
 
