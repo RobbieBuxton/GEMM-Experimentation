@@ -23,31 +23,35 @@ int main (int argc, char* argv[]) {
 	// test_chain_contraction(&openblas_chain_contraction_kernel, 9, 200, 0.05, results);
 	
 	//Switching order causes malloc assersion problem :shrug:
-	int size = 1000;
-	int iterations = 100;
-	// printf("Size: %d Iterations: %d\n",size,iterations);
+	for (int i = 1; i < 20; i++)
+	{
+		int size = i*100;
+		int iterations = i*100;
+		printf("%d\n",size);
 
-	float* devito_result = calloc(sizeof(float),size * size);
-	float* custom_result = calloc(sizeof(float),size * size);
-
-	
-	test_devito_stencil_kernel(1,1,iterations-1,size,devito_result);	
-	test_custom_stencil_kernel(1,1,iterations,size,custom_result);
-	 
-	if (size < 10) {
-		printf("####DEVITO####\n");
-		print_matrix(devito_result,size-2,size-2);
-		printf("####CUSTOM####\n");
-		print_matrix(custom_result,size-2,size-2);
+		float* devito_result = calloc(sizeof(float),size * size);
+		float* custom_result = calloc(sizeof(float),size * size);
+		
+		test_devito_stencil_kernel(1,1,iterations-1,size,devito_result);	
+		test_custom_stencil_kernel(1,1,iterations,size,custom_result);
+		
+		free(devito_result);
+		free(custom_result);
 	}
+	// if (size < 10) {
+	// 	printf("####DEVITO####\n");
+	// 	print_matrix(devito_result,size-2,size-2);
+	// 	printf("####CUSTOM####\n");
+	// 	print_matrix(custom_result,size-2,size-2);
+	// }
 
-	printf("randon cell comparison \n devito: %.10f custom: %.10f\n",devito_result[size * (1/2),size],custom_result[size * (1/2),size]);
-	for (int i = 0; i < (size-2)*(size-2); i++) {
-		if (fabs(custom_result[i] - devito_result[i]) > 0.000000001) {
-			printf("FALSE %.10f != %.10f difference is %.10f\n",custom_result[i],devito_result[i],custom_result[i]-devito_result[i]);
-			break;
-		}
-	}
+	// printf("randon cell comparison \n devito: %.10f custom: %.10f\n",devito_result[size * (1/2)*size],custom_result[size * (1/2)*size]);
+	// for (int i = 0; i < (size-2)*(size-2); i++) {
+	// 	if (fabs(custom_result[i] - devito_result[i]) > 0.001) {
+	// 		printf("FALSE %.10f != %.10f difference is %.10f\n",custom_result[i],devito_result[i],custom_result[i]-devito_result[i]);
+	// 		break;
+	// 	}
+	// }
 
 	
 
@@ -99,7 +103,7 @@ void test_devito_stencil_kernel(int steps, int step, int iterations, int size, f
 
 	devito_linear_convection_kernel(&devito_u_vec, dt, h_x, h_y, x0_blk0_size, y0_blk0_size, time_M, time_m, x_M, x_m, y_M, y_m, &timers,result);
 
-	printf("devito timer: %f\n",timers.section0);
+	printf("%f\n",timers.section0);
 	free(devito_u_vec.data);
 }
 
@@ -136,7 +140,7 @@ void test_custom_stencil_kernel(int steps, int step, int iterations, int size, f
 	((float *)openblas_u_vec.data)[height*width + width*2 + 2] = 2;
 
 	custom_linear_convection_kernel(&openblas_u_vec, dt, h_x, h_y, x0_blk0_size, y0_blk0_size, time_M, time_m, x_M, x_m, y_M, y_m, &timers,result);
-	printf("custom timer: %f\n",timers.section0);
+	printf("%f\n",timers.section0);
 	free(openblas_u_vec.data);
 }
 
