@@ -19,7 +19,7 @@
 
 int custom_linear_convection_kernel(struct dataobj *restrict u_vec, const float dt, const float h_x, const float h_y, const int x0_blk0_size, const int y0_blk0_size, const int time_M, const int time_m, const int x_M, const int x_m, const int y_M, const int y_m, struct profiler * timers, float * result) {
 	START_TIMER(section0)
-	float a = 0.125;
+	float a = 0.13;
 	float c = 0.25;
 	int n = u_vec->size[1];
 	int iterations = time_M;
