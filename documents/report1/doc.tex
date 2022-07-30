@@ -1,0 +1,141 @@
+\documentclass{article}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{accents}
+\usepackage{pgfplots}
+\usepackage{filecontents}  
+\begin{document}
+\title{Faster Method for Stencil computation}
+\author{Robbie Buxton}
+\maketitle
+I propose a method for increasing the speed of computation stencil stencils. 
+Currently this method works on $3\times 3$ stencils. To my understanding it is generaliable to N dimensions for any width. \\
+\\
+For a given stencil stencil
+\newcommand{\stencilTop}{\alpha_{1}}
+\newcommand{\stencilLeft}{\beta_{1}}
+\newcommand{\stencilMiddle}{\gamma}
+\newcommand{\stencilRight}{\beta_{2}}
+\newcommand{\stencilBottom}{\alpha_{2}}
+
+\[\begin{matrix} 
+	& \stencilTop  & \\
+	\stencilLeft  & \stencilMiddle  & \stencilRight  \\
+	& \stencilBottom & 
+\end{matrix}\] \\
+
+\newcommand{\verticalBands}{V}
+\newcommand{\horizontalBands}{H}
+\newcommand{\sourceGrid}{S}
+
+Applied to a grid $\sourceGrid \in \mathbb{R}^{n \times n}$ $t$ times,
+[Source paper] states that you represent this the sum of two matrix multiplications
+\[ \sourceGrid_t = \verticalBands \sourceGrid_{t-1} + \sourceGrid_{t-1} \horizontalBands, \> \> S_0 = S\]
+
+where V and H are tridiagonal toplitz matrices 
+\[ \verticalBands = 
+\begin{bmatrix}
+	\frac{\stencilMiddle}{2} & \stencilBottom & & & & & & O \\ 
+	\stencilTop & \frac{\stencilMiddle}{2} & \stencilBottom & & & & & \\
+	& \stencilTop & . & . & & & & \\
+	& &  . & . & . & & &  \\
+	& & & . & . & . & & \\
+	& & & & . & .& \stencilBottom \\
+	O & & & & &  \stencilTop & \frac{\stencilMiddle}{2}
+\end{bmatrix} \in \mathbb{R}^{n\times n} \]
+\[\horizontalBands = 
+\begin{bmatrix}
+	\frac{\stencilMiddle}{2} & \stencilRight & & & & & & O \\ 
+	\stencilLeft & \frac{\stencilMiddle}{2} & \stencilRight & & & & & \\
+	& \stencilLeft & . & . & & & & \\
+	& &  . & . & . & & &  \\
+	& & & . & . & . & & \\
+	& & & & . & .& \stencilRight \\
+	O & & & & &  \stencilLeft & \frac{\stencilMiddle}{2}
+\end{bmatrix} \in \mathbb{R}^{n\times n}\] \\ 
+I believe this can be sped up by instead calculating
+\newcommand{\innerSum}{C}
+\newcommand{\verticalBasis}{{X_V}}
+\newcommand{\verticalEigens}{{\Lambda_V}}
+\newcommand{\horizontalBasis}{{X_H}}
+\newcommand{\horizontalEigens}{{\Lambda_H}}
+\newcommand{\transformedSourceGrid}{T}
+
+\[ \sourceGrid_t = \verticalBasis \innerSum \horizontalBasis^{-1} \] 
+Where
+\[\verticalBasis \verticalEigens \verticalBasis^{-1} = \verticalBands \]
+\[\horizontalBasis \horizontalEigens \horizontalBasis^{-1} = \horizontalBands\]
+\[\transformedSourceGrid = \verticalBasis^{-1} \sourceGrid \horizontalBasis\]
+\[\innerSum_{i,j} = \transformedSourceGrid_{i,j} (\verticalEigens_{i,i} + \horizontalEigens_{j,j})^n\]
+I believe this algorithm has complexity $O(n^3 + n^2\log t)$ \\ \\
+Based on [Source this paper] we can calculate the eigenvalues and vectors 
+algebraically because of the tridiagonal toplitz form of $\verticalBands$ and $\horizontalBands$ 
+\[ i,j = 1:n\]
+\[ \verticalEigens_{i,i} = \frac{\stencilMiddle}{2} + 2\sqrt{\stencilTop \stencilBottom}\cos{\frac{i\pi}{n+1}}\]
+\[ \verticalBasis_{i,j} = (\frac{\stencilTop}{\stencilBottom})^{\frac{j}{2}}\sin{\frac{ij\pi}{n+1}} \]
+\[ \horizontalEigens_{j,j} = \frac{\stencilMiddle}{2} + 2\sqrt{\stencilLeft \stencilRight}\cos{\frac{j\pi}{n+1}} \]
+\[ \verticalBasis_{i,j} = (\frac{\stencilLeft}{\stencilRight})^{\frac{j}{2}}\sin{\frac{ij\pi}{n+1}} \]
+So I believe the diagonalisation has a complexity $O(n^2 log{\>n})$ \\ \\
+We use BLAS libraries for our matrix multiplications which is at worst $O(n^3)$ \\ \\
+Calculating the innerSum $\innerSum$ is done in $O(n^2\log{t})$
+\subsection*{Proof of correctness}
+\begin{flalign}
+\sourceGrid_t &= \verticalBands \sourceGrid_{t-1} + \sourceGrid_{t-1} \horizontalBands, \> \> S_0 = S &&\\
+&= \sum_{k = 0}^t {t \choose k} \verticalBands^{k} \sourceGrid \horizontalBands^{n-k} &&\\
+&= \sum_{k = 0}^t {t \choose k} (\verticalBasis \verticalEigens \verticalBasis^{-1})^{k} \sourceGrid (\horizontalBasis \horizontalEigens \horizontalBasis^{-1})^{n-k} &&\\
+&= \sum_{k = 0}^t {t \choose k} \verticalBasis \verticalEigens^{k} \verticalBasis^{-1} \sourceGrid \horizontalBasis \horizontalEigens^{n-k} \horizontalBasis^{-1} &&\\
+&= \sum_{k = 0}^t {t \choose k} \verticalBasis \verticalEigens^{k} \transformedSourceGrid \horizontalEigens^{n-k} \horizontalBasis^{-1} &&\\
+&=   \verticalBasis (\sum_{k = 0}^t {t \choose k} \verticalEigens^{k} \transformedSourceGrid \horizontalEigens^{n-k}) \horizontalBasis^{-1} &&\\
+({\sum_{k = 0}^t {t \choose k} \verticalEigens^{k} \transformedSourceGrid \horizontalEigens^{n-k}})_{i,j} &= \sum_{k = 0}^t {t \choose k} ({\verticalEigens_{i,i}})^{k} (\transformedSourceGrid_{i,j}) ({\horizontalEigens_{j,j}})^{n-k} &&\\
+&= (\transformedSourceGrid_{i,j})  ({\horizontalEigens_{j,j}})^{n} \sum_{k = 0}^t {t \choose k} (\frac{\verticalEigens_{i,i}}{\horizontalEigens_{j,j}})^{k}
+\end{flalign}
+\subsection*{Test results}
+
+\begin{filecontents*}{data.csv}
+	size, devito, custom
+	100, 0.151409, 0.012753
+	200, 0.171719, 0.024297
+	300, 0.267383, 0.021378
+	400, 0.326060, 0.025595
+	500, 0.522454, 0.046935
+	600, 1.061937, 0.053750
+	700, 1.255377, 0.070553
+	800, 1.755467, 0.075158
+	900, 2.422379, 0.127462
+	1000, 3.423538, 0.191081
+	1100, 4.749781, 0.188261
+	1200, 6.282515, 0.206073
+	1300, 7.940687, 0.258702
+	1400, 9.948888, 0.324063
+	1500, 12.294626, 0.355924
+	1600, 15.000360, 0.390331
+	1700, 18.036925, 0.505403
+	1800, 22.403344, 0.591835
+	1900, 27.284942, 0.685276
+	2000, 32.834737, 0.802248
+	2100, 36.571196, 1.011154
+	2200, 43.546261, 1.101451
+	2300, 49.733833, 1.291154
+	2400, 54.443949, 1.342048
+	2500, 62.262221, 1.385411
+	2600, 70.272917, 1.483700
+	2700, 79.364802, 1.613500
+	2800, 85.705118, 1.689242
+	2900, 98.216481, 2.267311
+	3000, 112.504909, 2.574438
+	3100, 119.051002, 2.499289
+	3200, 128.200307, 2.453369
+	3300, 168.536610, 3.497994
+	3400, 168.635349, 3.278498
+	3500, 180.232800, 3.656672
+\end{filecontents*}
+Running on an i5-8250U 4 cores, 8 threads. 3.40 GHZ \\ \\
+\begin{tikzpicture}
+	\begin{axis} [ymode=log,ymax = 500,xmax = 3750, ylabel={time},xlabel={size and iterations},legend pos=south east]
+	\addplot table [x=size,y=devito, col sep=comma] {data.csv};
+	\addplot table [x=size,y=custom, col sep=comma] {data.csv};
+	\addlegendentry{Devito}
+	\addlegendentry{Custom}
+	\end{axis}
+\end{tikzpicture}
+\end{document}
