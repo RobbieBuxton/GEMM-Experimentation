@@ -67,7 +67,8 @@ Where
 \[\horizontalBasis \horizontalEigens \horizontalBasis^{-1} = \horizontalBands\]
 \[\transformedSourceGrid = \verticalBasis^{-1} \sourceGrid \horizontalBasis\]
 \[\innerSum_{i,j} = \transformedSourceGrid_{i,j} (\verticalEigens_{i,i} + \horizontalEigens_{j,j})^n\]
-I believe this algorithm has complexity $O(n^3 + n^2\log t)$ \\ \\
+I believe this algorithm has complexity $O(M)$ as it is bound by the time required to compute 4 matrix multiplications. $M <= n^3$ depending 
+on how sparse the innersum becomes which leads to the strange but correct behaviour where larger iterations become quicker to compute \\ \\
 Based on [Source this paper] we can calculate the eigenvalues and vectors 
 algebraically because of the tridiagonal toplitz form of $\verticalBands$ and $\horizontalBands$ 
 \[ i,j = 1:n\]
@@ -75,23 +76,30 @@ algebraically because of the tridiagonal toplitz form of $\verticalBands$ and $\
 \[ \verticalBasis_{i,j} = (\frac{\stencilTop}{\stencilBottom})^{\frac{j}{2}}\sin{\frac{ij\pi}{n+1}} \]
 \[ \horizontalEigens_{j,j} = \frac{\stencilMiddle}{2} + 2\sqrt{\stencilLeft \stencilRight}\cos{\frac{j\pi}{n+1}} \]
 \[ \verticalBasis_{i,j} = (\frac{\stencilLeft}{\stencilRight})^{\frac{j}{2}}\sin{\frac{ij\pi}{n+1}} \]
-So I believe the diagonalisation has a complexity $O(n^2 log{\>n})$ \\ \\
+So I believe the diagonalisation has a complexity $O(n^2)$ \\ \\
 We use BLAS libraries for our matrix multiplications which is at worst $O(n^3)$ \\ \\
-Calculating the innerSum $\innerSum$ is done in $O(n^2\log{t})$
+Calculating the innerSum $\innerSum$ is done in $O(n^2)$ as taking large exponents is effectively in constant time.
 \subsection*{Proof of correctness}
-\begin{flalign}
+\begin{flalign*}
 \sourceGrid_t &= \verticalBands \sourceGrid_{t-1} + \sourceGrid_{t-1} \horizontalBands, \> \> S_0 = S &&\\
 &= \sum_{k = 0}^t {t \choose k} \verticalBands^{k} \sourceGrid \horizontalBands^{n-k} &&\\
 &= \sum_{k = 0}^t {t \choose k} (\verticalBasis \verticalEigens \verticalBasis^{-1})^{k} \sourceGrid (\horizontalBasis \horizontalEigens \horizontalBasis^{-1})^{n-k} &&\\
 &= \sum_{k = 0}^t {t \choose k} \verticalBasis \verticalEigens^{k} \verticalBasis^{-1} \sourceGrid \horizontalBasis \horizontalEigens^{n-k} \horizontalBasis^{-1} &&\\
 &= \sum_{k = 0}^t {t \choose k} \verticalBasis \verticalEigens^{k} \transformedSourceGrid \horizontalEigens^{n-k} \horizontalBasis^{-1} &&\\
 &=   \verticalBasis (\sum_{k = 0}^t {t \choose k} \verticalEigens^{k} \transformedSourceGrid \horizontalEigens^{n-k}) \horizontalBasis^{-1} &&\\
+\end{flalign*}
+\begin{flalign*}
 ({\sum_{k = 0}^t {t \choose k} \verticalEigens^{k} \transformedSourceGrid \horizontalEigens^{n-k}})_{i,j} &= \sum_{k = 0}^t {t \choose k} ({\verticalEigens_{i,i}})^{k} (\transformedSourceGrid_{i,j}) ({\horizontalEigens_{j,j}})^{n-k} &&\\
-&= (\transformedSourceGrid_{i,j})  ({\horizontalEigens_{j,j}})^{n} \sum_{k = 0}^t {t \choose k} (\frac{\verticalEigens_{i,i}}{\horizontalEigens_{j,j}})^{k}
-\end{flalign}
+&= (\transformedSourceGrid_{i,j})  ({\horizontalEigens_{j,j}})^{n} \sum_{k = 0}^t {t \choose k} (\frac{\verticalEigens_{i,i}}{\horizontalEigens_{j,j}})^{k} &&\\
+&= (\transformedSourceGrid_{i,j})  ({\horizontalEigens_{j,j}})^{n} (1 + \frac{\verticalEigens_{i,i}}{\horizontalEigens_{j,j}})^{n} &&\\
+&= (\transformedSourceGrid_{i,j})  ({\horizontalEigens_{j,j}}+ \verticalEigens_{i,i})^{n} = C_{i,j} &&\\
+\end{flalign*}
+\begin{flalign*}
+\sourceGrid_t &= \verticalBasis C \horizontalBasis^{-1} &&
+\end{flalign*}
 \subsection*{Test results}
 
-\begin{filecontents*}{data.csv}
+\begin{filecontents*}{data1.csv}
 	size, devito, custom
 	100, 0.151409, 0.012753
 	200, 0.171719, 0.024297
@@ -132,10 +140,64 @@ Calculating the innerSum $\innerSum$ is done in $O(n^2\log{t})$
 Running on an i5-8250U 4 cores, 8 threads. 3.40 GHZ \\ \\
 \begin{tikzpicture}
 	\begin{axis} [ymode=log,ymax = 500,xmax = 3750, ylabel={time},xlabel={size and iterations},legend pos=south east]
-	\addplot table [x=size,y=devito, col sep=comma] {data.csv};
-	\addplot table [x=size,y=custom, col sep=comma] {data.csv};
+	\addplot table [x=size,y=devito, col sep=comma] {data1.csv};
+	\addplot table [x=size,y=custom, col sep=comma] {data1.csv};
 	\addlegendentry{Devito}
 	\addlegendentry{Custom}
 	\end{axis}
 \end{tikzpicture}
+
+\begin{filecontents*}{data2.csv}
+	iterations, devito, custom
+	25, 0.392590, 0.790663
+	50, 0.690924, 1.942880
+	75, 1.017770, 2.500129
+	100, 1.327902, 3.523172
+	125, 1.667693, 3.869910
+	150, 1.992307, 3.411621
+	175, 2.312899, 2.935495
+	200, 2.647703, 2.556436
+	225, 2.970207, 2.337855
+	250, 3.301973, 2.147661
+	275, 3.640479, 1.791232
+	300, 3.968999, 1.591348
+	325, 4.299237, 1.548726
+	350, 4.618517, 1.552998
+	375, 4.931562, 1.533609
+	400, 5.278637, 1.521532
+	425, 5.593655, 1.412656
+	450, 6.047294, 1.415830
+	475, 6.714649, 1.302995
+	500, 6.856577, 1.235695
+	525, 7.029075, 1.207368
+	550, 7.306775, 1.134019
+	575, 7.673165, 1.067803
+	600, 8.009989, 1.050725
+	625, 8.313540, 0.992116
+	650, 8.645910, 0.978663
+	675, 8.955524, 1.001663
+	700, 9.264035, 0.987331
+	725, 9.576102, 0.975227
+	750, 9.892396, 1.011991
+	775, 10.209912, 1.014369
+	800, 10.542156, 0.959242
+	825, 10.965361, 0.992886
+	850, 11.213993, 1.013995
+	875, 11.521042, 0.978162
+	900, 11.959000, 0.946707
+	925, 12.275203, 0.923441
+	950, 12.517497, 0.949448
+	975, 12.787292, 0.898449
+	1000, 13.123104, 0.853687
+\end{filecontents*}
+Running on an i5-9600K 6 cores, 6 threads. 4.60 GHZ \\ \\
+\begin{tikzpicture}
+	\begin{axis} [ymode=log,xmax = 1050, ylabel={time},xlabel={iterations},legend pos=north west]
+	\addplot table [x=iterations,y=devito, col sep=comma] {data2.csv};
+	\addplot table [x=iterations,y=custom, col sep=comma] {data2.csv};
+	\addlegendentry{Devito}
+	\addlegendentry{Custom}
+	\end{axis}
+\end{tikzpicture}
+
 \end{document}

@@ -19,8 +19,9 @@
 
 int custom_linear_convection_kernel(struct dataobj *restrict u_vec, const float dt, const float h_x, const float h_y, const int x0_blk0_size, const int y0_blk0_size, const int time_M, const int time_m, const int x_M, const int x_m, const int y_M, const int y_m, struct profiler * timers, float * result) {
 	START_TIMER(section0)
-	float a = 0.13;
-	float c = 0.25;
+	float a = 0.0025;
+	float b = 0.99;
+	float c = b/2;
 	int n = u_vec->size[1];
 	int iterations = time_M;
 	float* S = u_vec->data;
@@ -59,18 +60,15 @@ int custom_linear_convection_kernel(struct dataobj *restrict u_vec, const float 
 	float *temp1 = calloc(sizeof(float), n * n);
 	float *temp2 = calloc(sizeof(float), n * n);
 
-	
 	diagonalize_matrix(V, n, n, PVT, DV, PVINV);
 	diagonalize_matrix(H, n, n, PHT, DH, PHINV);
 
-
 	float *T = calloc(sizeof(float), n * n);
 
-	
   //Combine PV^-1 * S * PH = T
 	cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, n, n, n, 1.0, PVINV, n, S, n, 0.0, temp1, n);
 	cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasTrans, n, n, n, 1.0, temp1, n, PHT, n, 0.0, T, n);
-
+	
 
 	float *H_eigen = malloc(sizeof(float) * n);
 	float *V_eigen = malloc(sizeof(float) * n);
@@ -98,11 +96,10 @@ int custom_linear_convection_kernel(struct dataobj *restrict u_vec, const float 
 	}
 
 	
-
+	
 	cblas_sgemm(CblasRowMajor, CblasTrans, CblasNoTrans, n, n, n, 1.0, PHT, n, temp2, n, 0.0, temp1, n);
 	cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, n, n, n, 1.0, temp1, n, PVINV, n, 0.0, result, n);
-
-
+	
 	free(H);	
 	free(PHT);
 	free(DH);

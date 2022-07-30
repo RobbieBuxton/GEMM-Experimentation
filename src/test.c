@@ -18,11 +18,8 @@
 
 int main (int argc, char* argv[]) {
 
-	// test_matrix_kernel(&devito_chain_contraction_kernel,11,250,5,0.05);
-	// double results[2];
-	// test_chain_contraction(&openblas_chain_contraction_kernel, 9, 200, 0.05, results);
 
-	int steps = 40;
+	int steps = 25;
 		
 	FILE* fp1 = fopen("results.csv", "w");
 	if (fp1 == NULL)
@@ -31,12 +28,13 @@ int main (int argc, char* argv[]) {
  			return 1;
 	}
 
-	fprintf(fp1,"iterations, devito, custom\n");
+	fprintf(fp1,"iterations, devito, custom, max_error\n");
 
 	struct profiler devito_timers = {.section0 = 0};
 	struct profiler custom_timers = {.section0 = 0};
 	float max_error = 0;
-
+	float cum_error = 0;
+	float error = 0;
 
 	//Switching order causes malloc assersion problem :shrug:
 	for (int i = 1; i <= steps; i++)
@@ -44,7 +42,7 @@ int main (int argc, char* argv[]) {
 		devito_timers.section0 = 0;
 		custom_timers.section0 = 0;
 		int size = 2500;
-		int iterations = i*25;
+		int iterations = i*100;
 		printf("%d\n",iterations);
 
 		float* devito_result = calloc(sizeof(float),size * size);
@@ -53,41 +51,35 @@ int main (int argc, char* argv[]) {
 		test_devito_stencil_kernel(1,1,iterations-1,size,devito_result,&devito_timers);	
 		test_custom_stencil_kernel(1,1,iterations,size,custom_result,&custom_timers);
 		
-		fprintf(fp1,"%d, %f, %f\n",iterations,devito_timers.section0,custom_timers.section0);
-
-
-	
 		if (size < 10) {
-			printf("####DEVITO####\n");
-			print_matrix(devito_result,size-2,size-2);
+			// printf("####DEVITO####\n");
+			// print_matrix(devito_result,size-2,size-2);
 			printf("####CUSTOM####\n");
 			print_matrix(custom_result,size-2,size-2);
 		}
 		
 		max_error = 0;
+		cum_error = 0;
+		error = 0;
+
 		printf("randon cell comparison \n devito: %.10f custom: %.10f\n",devito_result[size * (1/2)*size],custom_result[size * (1/2)*size]);
 		for (int i = 0; i < (size-2)*(size-2); i++) {
-			if (fabs(devito_result[i]-custom_result[i]/devito_result[i]) > max_error) {
-				max_error = fabs((devito_result[i]-custom_result[i])/devito_result[i]);
+			error = fabs((devito_result[i]-custom_result[i])/devito_result[i])*100;
+			cum_error += error;
+			if (error > max_error) {
+				max_error = error;
 			}
 		}
 		printf("Max Error: %f\n",max_error);
+		printf("Average Error: %f\n",cum_error/((size-2)*(size-2)));
+		fprintf(fp1,"%d, %f, %f, %f\n",iterations,devito_timers.section0,custom_timers.section0,max_error);
+
 		free(devito_result);
 		free(custom_result);
 
 	}
 	fclose(fp1);
 
-	// printf("####OPENBLAS####\n");
-	// test_openblas_stencil_kernel(1,1,iterations-1,size);
-
-	// float *b_table = generate_binomial_table(iterations);
-	// printf("Binomia tablel\n");
-	// for (int i = 0; i < iterations+1; i++) {
-	// 	printf("%f\n",b_table[i]);
-	// }
-
-	// test();
 	return 0;
 }
 

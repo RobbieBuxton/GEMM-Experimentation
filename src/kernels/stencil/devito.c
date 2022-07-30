@@ -24,8 +24,8 @@ int devito_linear_convection_kernel(struct dataobj *restrict u_vec, const float 
   _MM_SET_DENORMALS_ZERO_MODE(_MM_DENORMALS_ZERO_ON);
   _MM_SET_FLUSH_ZERO_MODE(_MM_FLUSH_ZERO_ON);
 
-  float a = 0.13;
-  float b = 0.5;
+  float a = 0.0025;
+  float b = 0.99;
 	int nthreads = 8;
 	START_TIMER(section0)
 	
