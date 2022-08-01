@@ -18,7 +18,17 @@
 
 int main (int argc, char* argv[]) {
 
-
+	float a = 0.0025;
+	float b = 0.99;
+	float** stencil = calloc(sizeof(float*),2);
+	stencil[0] = calloc(sizeof(float),3);
+	stencil[1] = calloc(sizeof(float),3);
+	stencil[0][0] = a;
+	stencil[0][1] = b/2; 
+	stencil[0][2] = a;
+	stencil[1][0] = a;
+	stencil[1][1] = b/2;
+	stencil[1][2] = a;
 	int steps = 25;
 		
 	FILE* fp1 = fopen("results.csv", "w");
@@ -48,12 +58,12 @@ int main (int argc, char* argv[]) {
 		float* devito_result = calloc(sizeof(float),size * size);
 		float* custom_result = calloc(sizeof(float),size * size);
 		
-		test_devito_stencil_kernel(1,1,iterations-1,size,devito_result,&devito_timers);	
-		test_custom_stencil_kernel(1,1,iterations,size,custom_result,&custom_timers);
+		test_devito_stencil_kernel(stencil,1,1,iterations-1,size,devito_result,&devito_timers);	
+		test_custom_stencil_kernel(stencil,1,1,iterations,size,custom_result,&custom_timers);
 		
 		if (size < 10) {
-			// printf("####DEVITO####\n");
-			// print_matrix(devito_result,size-2,size-2);
+			printf("####DEVITO####\n");
+			print_matrix(devito_result,size-2,size-2);
 			printf("####CUSTOM####\n");
 			print_matrix(custom_result,size-2,size-2);
 		}
@@ -83,7 +93,7 @@ int main (int argc, char* argv[]) {
 	return 0;
 }
 
-void test_devito_stencil_kernel(int steps, int step, int iterations, int size, float * result, struct profiler* timers) {
+void test_devito_stencil_kernel(float** stencil, int steps, int step, int iterations, int size, float * result, struct profiler* timers) {
 	
 	const float dt = 0.1;
 	const float h_x = 0.5;
@@ -116,13 +126,13 @@ void test_devito_stencil_kernel(int steps, int step, int iterations, int size, f
 	((float *)devito_u_vec.data)[width*height + width * 3 + 2] = 2; 
 	((float *)devito_u_vec.data)[width*height + width * 3 + 3] = 2; 
 
-	devito_linear_convection_kernel(&devito_u_vec, dt, h_x, h_y, x0_blk0_size, y0_blk0_size, time_M, time_m, x_M, x_m, y_M, y_m, timers,result);
+	devito_linear_convection_kernel(stencil, &devito_u_vec, dt, h_x, h_y, x0_blk0_size, y0_blk0_size, time_M, time_m, x_M, x_m, y_M, y_m, timers,result);
 
 	printf("Devito: %f\n",timers->section0);
 	free(devito_u_vec.data);
 }
 
-void test_custom_stencil_kernel(int steps, int step, int iterations, int size, float * result,struct profiler *timers) {
+void test_custom_stencil_kernel(float** stencil, int steps, int step, int iterations, int size, float * result,struct profiler *timers) {
 	const float dt = 0.1;
 	const float h_x = 0.5;
 	const float h_y = 0.5;
@@ -153,7 +163,7 @@ void test_custom_stencil_kernel(int steps, int step, int iterations, int size, f
 	((float *)openblas_u_vec.data)[height*width + width*2 + 1] = 2; 
 	((float *)openblas_u_vec.data)[height*width + width*2 + 2] = 2;
 
-	custom_linear_convection_kernel(&openblas_u_vec, dt, h_x, h_y, x0_blk0_size, y0_blk0_size, time_M, time_m, x_M, x_m, y_M, y_m, timers,result);
+	custom_linear_convection_kernel(stencil, &openblas_u_vec, dt, h_x, h_y, x0_blk0_size, y0_blk0_size, time_M, time_m, x_M, x_m, y_M, y_m, timers,result);
 	printf("Custom: %f\n",timers->section0);
 	free(openblas_u_vec.data);
 }

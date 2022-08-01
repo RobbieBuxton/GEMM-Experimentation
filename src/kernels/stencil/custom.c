@@ -17,39 +17,35 @@
 #endif
 
 
-int custom_linear_convection_kernel(struct dataobj *restrict u_vec, const float dt, const float h_x, const float h_y, const int x0_blk0_size, const int y0_blk0_size, const int time_M, const int time_m, const int x_M, const int x_m, const int y_M, const int y_m, struct profiler * timers, float * result) {
+int custom_linear_convection_kernel(float** stencil, struct dataobj *restrict u_vec, const float dt, const float h_x, const float h_y, const int x0_blk0_size, const int y0_blk0_size, const int time_M, const int time_m, const int x_M, const int x_m, const int y_M, const int y_m, struct profiler * timers, float * result) {
 	START_TIMER(section0)
-	float a = 0.0025;
-	float b = 0.99;
-	float c = b/2;
 	int n = u_vec->size[1];
 	int iterations = time_M;
 	float* S = u_vec->data;
 
 	// Create Vertical Transform               
 	float* V = calloc(sizeof(float),(n)*(n));
-	V[0] = c;
-	V[1] = a;
+	V[0] = stencil[0][1];
+	V[1] = stencil[0][2];
 	for (int i = 1; i < n - 1; i ++) {
-		V[(i)*(n+1)-1] = a;
-		V[(i)*(n+1)] = c;
-		V[(i)*(n+1)+1] = a;
+		V[(i)*(n+1)-1] = stencil[0][0];
+		V[(i)*(n+1)] = stencil[0][1];
+		V[(i)*(n+1)+1] = stencil[0][2];
 	}
-	V[n*n-2] = a;
-	V[n*n-1] = c;
+	V[n*n-2] = stencil[0][0];
+	V[n*n-1] = stencil[0][1];
 
 	// Create Horizontal Transform
 	float* H = calloc(sizeof(float),(n)*(n));
-	H[0] = c;
-	H[n] = a;
+	H[0] = stencil[1][1];
+	H[1] = stencil[1][2];
 	for (int i = 1; i < n - 1; i ++) {
-		H[(i-1)*(n+1)+1] = a;
-		H[i*(n+1)] = c;
-		H[(i+1)*(n+1)-1] = a;
+		H[(i)*(n+1)-1] = stencil[1][0];
+		H[(i)*(n+1)] = stencil[1][1];
+		H[(i)*(n+1)+1] = stencil[1][2];
 	}
-	H[n*(n-1) -1] = a;
-	H[n*(n) -1] = c;
-
+	H[n*n-2] = stencil[1][0];
+	H[n*n-1] = stencil[1][1];
 
 	float *PHT = calloc(sizeof(float), n * n);
 	float *DH = calloc(sizeof(float), n * n);
