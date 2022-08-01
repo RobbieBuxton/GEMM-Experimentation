@@ -14,3 +14,7 @@
 *.pdf
 *.synctex.gz
 *.fd
+*.bbl
+*.bcf
+*.blg
+*.run.xml

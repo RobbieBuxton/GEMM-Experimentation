@@ -4,7 +4,10 @@
 \usepackage{accents}
 \usepackage{pgfplots}
 \usepackage{filecontents}  
+
+
 \begin{document}
+
 \title{Faster Method for Stencil computation}
 \author{Robbie Buxton}
 \maketitle
@@ -29,7 +32,7 @@ For a given stencil stencil
 \newcommand{\sourceGrid}{S}
 
 Applied to a grid $\sourceGrid \in \mathbb{R}^{n \times n}$ $t$ times,
-[Source paper] states that you represent this the sum of two matrix multiplications
+\cite{10.1145/3524059.3532392} states that you represent this the sum of two matrix multiplications
 \[ \sourceGrid_t = \verticalBands \sourceGrid_{t-1} + \sourceGrid_{t-1} \horizontalBands, \> \> S_0 = S\]
 
 where V and H are tridiagonal toplitz matrices 
@@ -67,18 +70,26 @@ Where
 \[\horizontalBasis \horizontalEigens \horizontalBasis^{-1} = \horizontalBands\]
 \[\transformedSourceGrid = \verticalBasis^{-1} \sourceGrid \horizontalBasis\]
 \[\innerSum_{i,j} = \transformedSourceGrid_{i,j} (\verticalEigens_{i,i} + \horizontalEigens_{j,j})^n\]
-I believe this algorithm has complexity $O(M)$ as it is bound by the time required to compute 4 matrix multiplications. $M <= n^3$ depending 
-on how sparse the innersum becomes which leads to the strange but correct behaviour where larger iterations become quicker to compute \\ \\
-Based on [Source this paper] we can calculate the eigenvalues and vectors 
+Based on \cite{noschese2013tridiagonal} we can calculate the eigenvalues and vectors 
 algebraically because of the tridiagonal toplitz form of $\verticalBands$ and $\horizontalBands$ 
 \[ i,j = 1:n\]
 \[ \verticalEigens_{i,i} = \frac{\stencilMiddle}{2} + 2\sqrt{\stencilTop \stencilBottom}\cos{\frac{i\pi}{n+1}}\]
 \[ \verticalBasis_{i,j} = (\frac{\stencilTop}{\stencilBottom})^{\frac{j}{2}}\sin{\frac{ij\pi}{n+1}} \]
 \[ \horizontalEigens_{j,j} = \frac{\stencilMiddle}{2} + 2\sqrt{\stencilLeft \stencilRight}\cos{\frac{j\pi}{n+1}} \]
 \[ \verticalBasis_{i,j} = (\frac{\stencilLeft}{\stencilRight})^{\frac{j}{2}}\sin{\frac{ij\pi}{n+1}} \]
-So I believe the diagonalisation has a complexity $O(n^2)$ \\ \\
-We use BLAS libraries for our matrix multiplications which is at worst $O(n^3)$ \\ \\
-Calculating the innerSum $\innerSum$ is done in $O(n^2)$ as taking large exponents is effectively in constant time.
+\subsection*{Complexity}
+I believe this algorithm has complexity $O(M)$ where M is the complexity of a matrix multiplication. 
+The algorithm is effectively bound by the time required to compute 4 matrix multiplications (at worst $n^3$). \\ \\
+As $t$ gets very large $C_{i,j} \in \{- \infty, -1, 0, 1, \infty\}$ which typically leads to a very sparse matrix 
+which results in a performance speed up as $t$ increases.\\ \\
+I currently use non-sparse BLAS libraries for the matrix multiplications which is at worst $O(n^3)$. 
+I plan to switch to sparseBLAS libs for the final computaiton as C can be very sparse.  \\ \\
+I believe calculating the innerSum $\innerSum$ is done in $O(n^2)$ as taking large exponents is effectively in constant time. 
+This means the algorithm is invariant under $t$. \\ \\ 
+Currently calculating the eigenvalues and eigenvectors is done in $O(n^2)$ time using the algorithm from \cite{noschese2013tridiagonal}.
+From a quick skim read of \cite{bogoya2022fast} I believe you can quickly calculate the eigenvalues and vectors of non tridiagonal toplitz 
+matrices that would arise from stencils with a width greater than 3.  
+
 \subsection*{Proof of correctness}
 \begin{flalign*}
 \sourceGrid_t &= \verticalBands \sourceGrid_{t-1} + \sourceGrid_{t-1} \horizontalBands, \> \> S_0 = S &&\\
@@ -200,4 +211,45 @@ Running on an i5-9600K 6 cores, 6 threads. 4.60 GHZ \\ \\
 	\end{axis}
 \end{tikzpicture}
 
+\begin{filecontents*}{data3.csv}
+	iterations, max, average
+	100, 0.000799, 0.000234
+	200, 0.002205, 0.000294
+	300, 0.001442, 0.000488
+	400, 0.001979, 0.000399
+	500, 0.002968, 0.001078
+	600, 0.005603, 0.000918
+	700, 0.006598, 0.001099
+	800, 0.004888, 0.001594
+	900, 0.003040, 0.000717
+	1000, 0.008368, 0.001053
+	1100, 0.005782, 0.002070
+	1200, 0.009882, 0.004165
+	1300, 0.006735, 0.003384
+	1400, 0.007641, 0.002941
+	1500, 0.012362, 0.002723
+	1600, 0.011587, 0.002277
+	1700, 0.010204, 0.002933
+	1800, 0.008976, 0.002819
+	1900, 0.009274, 0.002207
+	2000, 0.012398, 0.002593
+	2100, 0.008714, 0.002496
+	2200, 0.014281, 0.004674
+	2300, 0.014406, 0.004258
+	2400, 0.014293, 0.004080
+	2500, 0.016248, 0.003800
+\end{filecontents*}
+Running on an i5-8250U 4 cores, 8 threads. 3.40 GHZ \\ \\
+\begin{tikzpicture}
+	\begin{axis} [xmax = 2550, ylabel={Percent error},xlabel={size and iterations},legend pos=north west]
+	\addplot table [x=iterations,y=max, col sep=comma] {data3.csv};
+	\addplot table [x=iterations,y=average, col sep=comma] {data3.csv};
+	\addlegendentry{Max element error}
+	\addlegendentry{Average element error}
+	\end{axis}
+\end{tikzpicture}
+
+
+\bibliographystyle{ieeetr}
+\bibliography{citation} 
 \end{document}

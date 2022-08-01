@@ -28,7 +28,7 @@ int main (int argc, char* argv[]) {
  			return 1;
 	}
 
-	fprintf(fp1,"iterations, devito, custom, max_error\n");
+	fprintf(fp1,"iterations, devito, custom, max_error, average_error\n");
 
 	struct profiler devito_timers = {.section0 = 0};
 	struct profiler custom_timers = {.section0 = 0};
@@ -41,7 +41,7 @@ int main (int argc, char* argv[]) {
 	{
 		devito_timers.section0 = 0;
 		custom_timers.section0 = 0;
-		int size = 2500;
+		int size = i*100;
 		int iterations = i*100;
 		printf("%d\n",iterations);
 
@@ -72,7 +72,7 @@ int main (int argc, char* argv[]) {
 		}
 		printf("Max Error: %f\n",max_error);
 		printf("Average Error: %f\n",cum_error/((size-2)*(size-2)));
-		fprintf(fp1,"%d, %f, %f, %f\n",iterations,devito_timers.section0,custom_timers.section0,max_error);
+		fprintf(fp1,"%d, %f, %f, %f, %f\n",iterations,devito_timers.section0,custom_timers.section0,max_error,cum_error/((size-2)*(size-2)));
 
 		free(devito_result);
 		free(custom_result);
