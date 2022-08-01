@@ -4,6 +4,7 @@
 #include <limits.h> 
 #include <stdlib.h>
 #include <cblas.h>
+#include <math.h>
 #include "utils.h"
 #include "test.h"
 #include "kernels/matrix/nvblas.h"
@@ -17,34 +18,72 @@
 
 int main (int argc, char* argv[]) {
 
-	// test_matrix_kernel(&devito_chain_contraction_kernel,11,250,5,0.05);
-	// double results[2];
-	// test_chain_contraction(&openblas_chain_contraction_kernel, 9, 200, 0.05, results);
-	
+
+	int steps = 25;
+		
+	FILE* fp1 = fopen("results.csv", "w");
+	if (fp1 == NULL)
+	{
+			printf("Error while opening the file.\n");
+ 			return 1;
+	}
+
+	fprintf(fp1,"iterations, devito, custom, max_error, average_error\n");
+
+	struct profiler devito_timers = {.section0 = 0};
+	struct profiler custom_timers = {.section0 = 0};
+	float max_error = 0;
+	float cum_error = 0;
+	float error = 0;
+
 	//Switching order causes malloc assersion problem :shrug:
-	int size = 2000;
-	int iterations = 2000;
-	// printf("Size: %d Iterations: %d\n",size,iterations);
-	printf("####DEVITO####\n");
-	test_devito_stencil_kernel(1,1,iterations-1,size);
+	for (int i = 1; i <= steps; i++)
+	{
+		devito_timers.section0 = 0;
+		custom_timers.section0 = 0;
+		int size = i*100;
+		int iterations = i*100;
+		printf("%d\n",iterations);
 
-	printf("####CUSTOM####\n");
-	test_custom_stencil_kernel(1,1,iterations,size);
+		float* devito_result = calloc(sizeof(float),size * size);
+		float* custom_result = calloc(sizeof(float),size * size);
+		
+		test_devito_stencil_kernel(1,1,iterations-1,size,devito_result,&devito_timers);	
+		test_custom_stencil_kernel(1,1,iterations,size,custom_result,&custom_timers);
+		
+		if (size < 10) {
+			// printf("####DEVITO####\n");
+			// print_matrix(devito_result,size-2,size-2);
+			printf("####CUSTOM####\n");
+			print_matrix(custom_result,size-2,size-2);
+		}
+		
+		max_error = 0;
+		cum_error = 0;
+		error = 0;
 
-	// printf("####OPENBLAS####\n");
-	// test_openblas_stencil_kernel(1,1,iterations-1,size);
+		printf("randon cell comparison \n devito: %.10f custom: %.10f\n",devito_result[size * (1/2)*size],custom_result[size * (1/2)*size]);
+		for (int i = 0; i < (size-2)*(size-2); i++) {
+			error = fabs((devito_result[i]-custom_result[i])/devito_result[i])*100;
+			cum_error += error;
+			if (error > max_error) {
+				max_error = error;
+			}
+		}
+		printf("Max Error: %f\n",max_error);
+		printf("Average Error: %f\n",cum_error/((size-2)*(size-2)));
+		fprintf(fp1,"%d, %f, %f, %f, %f\n",iterations,devito_timers.section0,custom_timers.section0,max_error,cum_error/((size-2)*(size-2)));
 
-	// float *b_table = generate_binomial_table(iterations);
-	// printf("Binomia tablel\n");
-	// for (int i = 0; i < iterations+1; i++) {
-	// 	printf("%f\n",b_table[i]);
-	// }
+		free(devito_result);
+		free(custom_result);
 
-	// test();
+	}
+	fclose(fp1);
+
 	return 0;
 }
 
-void test_devito_stencil_kernel(int steps, int step, int iterations, int size) {
+void test_devito_stencil_kernel(int steps, int step, int iterations, int size, float * result, struct profiler* timers) {
 	
 	const float dt = 0.1;
 	const float h_x = 0.5;
@@ -57,7 +96,7 @@ void test_devito_stencil_kernel(int steps, int step, int iterations, int size) {
 	const int x_m = 0;
 	const int y_M = size -3; 
 	const int y_m = 0; 
-	struct profiler timers = {.section0 = 0};
+	
 
 	int width = size;
 	int height = size;
@@ -77,13 +116,13 @@ void test_devito_stencil_kernel(int steps, int step, int iterations, int size) {
 	((float *)devito_u_vec.data)[width*height + width * 3 + 2] = 2; 
 	((float *)devito_u_vec.data)[width*height + width * 3 + 3] = 2; 
 
-	devito_linear_convection_kernel(&devito_u_vec, dt, h_x, h_y, x0_blk0_size, y0_blk0_size, time_M, time_m, x_M, x_m, y_M, y_m, &timers);
+	devito_linear_convection_kernel(&devito_u_vec, dt, h_x, h_y, x0_blk0_size, y0_blk0_size, time_M, time_m, x_M, x_m, y_M, y_m, timers,result);
 
-	printf("devito timer: %f\n",timers.section0);
+	printf("Devito: %f\n",timers->section0);
 	free(devito_u_vec.data);
 }
 
-void test_custom_stencil_kernel(int steps, int step, int iterations, int size) {
+void test_custom_stencil_kernel(int steps, int step, int iterations, int size, float * result,struct profiler *timers) {
 	const float dt = 0.1;
 	const float h_x = 0.5;
 	const float h_y = 0.5;
@@ -95,7 +134,6 @@ void test_custom_stencil_kernel(int steps, int step, int iterations, int size) {
 	const int x_m = 0;
 	const int y_M = 4; 
 	const int y_m = 0; 
-	struct profiler timers = {.section0 = 0};
 
 	int width = size-2;
 	int height = size-2;
@@ -115,8 +153,8 @@ void test_custom_stencil_kernel(int steps, int step, int iterations, int size) {
 	((float *)openblas_u_vec.data)[height*width + width*2 + 1] = 2; 
 	((float *)openblas_u_vec.data)[height*width + width*2 + 2] = 2;
 
-	custom_linear_convection_kernel(&openblas_u_vec, dt, h_x, h_y, x0_blk0_size, y0_blk0_size, time_M, time_m, x_M, x_m, y_M, y_m, &timers);
-	printf("custom timer: %f\n",timers.section0);
+	custom_linear_convection_kernel(&openblas_u_vec, dt, h_x, h_y, x0_blk0_size, y0_blk0_size, time_M, time_m, x_M, x_m, y_M, y_m, timers,result);
+	printf("Custom: %f\n",timers->section0);
 	free(openblas_u_vec.data);
 }
 

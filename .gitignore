@@ -7,3 +7,14 @@
 *.vscode/settings.json
 *.csv
 *.vscode/
+*.aux
+*.fdb_latexmk
+*.fls
+*.log
+*.pdf
+*.synctex.gz
+*.fd
+*.bbl
+*.bcf
+*.blg
+*.run.xml

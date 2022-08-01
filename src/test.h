@@ -8,7 +8,7 @@ extern void init_vector(struct dataobj *restrict vect, int n, int m);
 extern void destroy_vector(struct dataobj *restrict vect);
 extern void test_chain_contraction(matrixKernel kernel,int size, int iterations, float sparcity, double *results);
 extern void test_matrix_kernel(matrixKernel kernel, int steps, int step, int iterations, float sparcity);
-extern void test_devito_stencil_kernel(int steps, int step, int iterations, int size);
+extern void test_devito_stencil_kernel(int steps, int step, int iterations, int size, float* result, struct profiler*);
 extern void test_openblas_stencil_kernel(int steps, int step, int iterations,  int size);
-extern void test_custom_stencil_kernel(int steps, int step, int iterations,  int size);
+extern void test_custom_stencil_kernel(int steps, int step, int iterations,  int size, float* result,struct profiler*);
 #endif
