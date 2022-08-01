@@ -7,35 +7,29 @@
 
 
 \begin{document}
-
 \title{Faster Method for Stencil computation}
 \author{Robbie Buxton}
 \maketitle
-I propose a method for increasing the speed of computation stencil stencils. 
-Currently this method works on $3\times 3$ stencils. To my understanding it is generaliable to N dimensions for any width. \\
-\\
-For a given stencil stencil
+I propose a method for increasing the speed of computating stencil. 
+Currently, this method works on $3\times 3$ star stencils. To my understanding it is generalizable to N dimensions for any width for star shapes. \\ \\
+For a given stencil
 \newcommand{\stencilTop}{\alpha_{1}}
 \newcommand{\stencilLeft}{\beta_{1}}
 \newcommand{\stencilMiddle}{\gamma}
 \newcommand{\stencilRight}{\beta_{2}}
 \newcommand{\stencilBottom}{\alpha_{2}}
-
 \[\begin{matrix} 
 	& \stencilTop  & \\
 	\stencilLeft  & \stencilMiddle  & \stencilRight  \\
 	& \stencilBottom & 
 \end{matrix}\] \\
-
 \newcommand{\verticalBands}{V}
 \newcommand{\horizontalBands}{H}
 \newcommand{\sourceGrid}{S}
-
 Applied to a grid $\sourceGrid \in \mathbb{R}^{n \times n}$ $t$ times,
-\cite{10.1145/3524059.3532392} states that you represent this the sum of two matrix multiplications
+\cite{10.1145/3524059.3532392} shows that you can represent this the sum of two matrix multiplications
 \[ \sourceGrid_t = \verticalBands \sourceGrid_{t-1} + \sourceGrid_{t-1} \horizontalBands, \> \> S_0 = S\]
-
-where V and H are tridiagonal toplitz matrices 
+where V and H are tridiagonal Toeplitz matrices. 
 \[ \verticalBands = 
 \begin{bmatrix}
 	\frac{\stencilMiddle}{2} & \stencilBottom & & & & & & O \\ 
@@ -70,40 +64,42 @@ Where
 \[\horizontalBasis \horizontalEigens \horizontalBasis^{-1} = \horizontalBands\]
 \[\transformedSourceGrid = \verticalBasis^{-1} \sourceGrid \horizontalBasis\]
 \[\innerSum_{i,j} = \transformedSourceGrid_{i,j} (\verticalEigens_{i,i} + \horizontalEigens_{j,j})^n\]
+Where $X_V, X_H$ are the eigenvectors and $\Lambda_A,\Lambda_B$ are the eigenvalues of $V,H$. \\ \\
 Based on \cite{noschese2013tridiagonal} we can calculate the eigenvalues and vectors 
-algebraically because of the tridiagonal toplitz form of $\verticalBands$ and $\horizontalBands$ 
+algebraically because of the tridiagonal Toeplitz form of $\verticalBands$ and $\horizontalBands$ 
 \[ i,j = 1:n\]
 \[ \verticalEigens_{i,i} = \frac{\stencilMiddle}{2} + 2\sqrt{\stencilTop \stencilBottom}\cos{\frac{i\pi}{n+1}}\]
 \[ \verticalBasis_{i,j} = (\frac{\stencilTop}{\stencilBottom})^{\frac{j}{2}}\sin{\frac{ij\pi}{n+1}} \]
 \[ \horizontalEigens_{j,j} = \frac{\stencilMiddle}{2} + 2\sqrt{\stencilLeft \stencilRight}\cos{\frac{j\pi}{n+1}} \]
 \[ \verticalBasis_{i,j} = (\frac{\stencilLeft}{\stencilRight})^{\frac{j}{2}}\sin{\frac{ij\pi}{n+1}} \]
-\subsection*{Complexity}
+\subsection*{Complexity and speed}
 I believe this algorithm has complexity $O(M)$ where M is the complexity of a matrix multiplication. 
-The algorithm is effectively bound by the time required to compute 4 matrix multiplications (at worst $n^3$). \\ \\
-As $t$ gets very large $C_{i,j} \in \{- \infty, -1, 0, 1, \infty\}$ which typically leads to a very sparse matrix 
+The algorithm is effectively bound by the time required to compute 4 matrix multiplications (at worst $n^3$). The last two of which are highly likely to be sparse \\ \\
+As $t$ gets large $C_{i,j} \rightarrow \in \{- \infty, -1, 0, 1, \infty\}$ which typically leads to a sparse matrix 
 which results in a performance speed up as $t$ increases.\\ \\
-I currently use non-sparse BLAS libraries for the matrix multiplications which is at worst $O(n^3)$. 
-I plan to switch to sparseBLAS libs for the final computaiton as C can be very sparse.  \\ \\
+The algorithm currently uses non-sparse BLAS libraries for the matrix multiplications which is at worst $O(n^3)$. 
+I plan to switch to sparseBLAS libaries.  \\ \\
 I believe calculating the innerSum $\innerSum$ is done in $O(n^2)$ as taking large exponents is effectively in constant time. 
 This means the algorithm is invariant under $t$. \\ \\ 
-Currently calculating the eigenvalues and eigenvectors is done in $O(n^2)$ time using the algorithm from \cite{noschese2013tridiagonal}.
-From a quick skim read of \cite{bogoya2022fast} I believe you can quickly calculate the eigenvalues and vectors of non tridiagonal toplitz 
-matrices that would arise from stencils with a width greater than 3.  
+Currently, calculating the eigenvalues and eigenvectors is done in $O(n^2)$ time using the algorithm from \cite{noschese2013tridiagonal}.
+From a quick skim read of \cite{bogoya2022fast} I believe you can quickly calculate the eigenvalues and vectors of non tridiagonal Toeplitz 
+matrices that would arise from stencils with a width greater than 3. \\ \\
+For $N$ dimensions $n$ Toeplitz matrices need to be diagonalized, if the matrices are the same the result can be reused. 
 
 \subsection*{Proof of correctness}
 \begin{flalign*}
 \sourceGrid_t &= \verticalBands \sourceGrid_{t-1} + \sourceGrid_{t-1} \horizontalBands, \> \> S_0 = S &&\\
-&= \sum_{k = 0}^t {t \choose k} \verticalBands^{k} \sourceGrid \horizontalBands^{n-k} &&\\
-&= \sum_{k = 0}^t {t \choose k} (\verticalBasis \verticalEigens \verticalBasis^{-1})^{k} \sourceGrid (\horizontalBasis \horizontalEigens \horizontalBasis^{-1})^{n-k} &&\\
-&= \sum_{k = 0}^t {t \choose k} \verticalBasis \verticalEigens^{k} \verticalBasis^{-1} \sourceGrid \horizontalBasis \horizontalEigens^{n-k} \horizontalBasis^{-1} &&\\
-&= \sum_{k = 0}^t {t \choose k} \verticalBasis \verticalEigens^{k} \transformedSourceGrid \horizontalEigens^{n-k} \horizontalBasis^{-1} &&\\
-&=   \verticalBasis (\sum_{k = 0}^t {t \choose k} \verticalEigens^{k} \transformedSourceGrid \horizontalEigens^{n-k}) \horizontalBasis^{-1} &&\\
+&= \sum_{k = 0}^t {t \choose k} \verticalBands^{k} \sourceGrid \horizontalBands^{n-k} &&\text{By self substitution until base case}\\
+&= \sum_{k = 0}^t {t \choose k} (\verticalBasis \verticalEigens \verticalBasis^{-1})^{k} \sourceGrid (\horizontalBasis \horizontalEigens \horizontalBasis^{-1})^{n-k} &&\text{Diagonalizing $V$ and $H$}\\
+&= \sum_{k = 0}^t {t \choose k} \verticalBasis \verticalEigens^{k} \verticalBasis^{-1} \sourceGrid \horizontalBasis \horizontalEigens^{n-k} \horizontalBasis^{-1} &&\text{Bringing the powers inside the basis change}\\
+&= \sum_{k = 0}^t {t \choose k} \verticalBasis \verticalEigens^{k} \transformedSourceGrid \horizontalEigens^{n-k} \horizontalBasis^{-1} &&\text{Substituting $\verticalBasis^{-1} \sourceGrid \horizontalBasis$ with $T$ }\\
+&=   \verticalBasis (\sum_{k = 0}^t {t \choose k} \verticalEigens^{k} \transformedSourceGrid \horizontalEigens^{n-k}) \horizontalBasis^{-1} &&\text{Taking the basis change out of the sum}\\
 \end{flalign*}
 \begin{flalign*}
-({\sum_{k = 0}^t {t \choose k} \verticalEigens^{k} \transformedSourceGrid \horizontalEigens^{n-k}})_{i,j} &= \sum_{k = 0}^t {t \choose k} ({\verticalEigens_{i,i}})^{k} (\transformedSourceGrid_{i,j}) ({\horizontalEigens_{j,j}})^{n-k} &&\\
-&= (\transformedSourceGrid_{i,j})  ({\horizontalEigens_{j,j}})^{n} \sum_{k = 0}^t {t \choose k} (\frac{\verticalEigens_{i,i}}{\horizontalEigens_{j,j}})^{k} &&\\
-&= (\transformedSourceGrid_{i,j})  ({\horizontalEigens_{j,j}})^{n} (1 + \frac{\verticalEigens_{i,i}}{\horizontalEigens_{j,j}})^{n} &&\\
-&= (\transformedSourceGrid_{i,j})  ({\horizontalEigens_{j,j}}+ \verticalEigens_{i,i})^{n} = C_{i,j} &&\\
+({\sum_{k = 0}^t {t \choose k} \verticalEigens^{k} \transformedSourceGrid \horizontalEigens^{n-k}})_{i,j} &= \sum_{k = 0}^t {t \choose k} ({\verticalEigens_{i,i}})^{k} (\transformedSourceGrid_{i,j}) ({\horizontalEigens_{j,j}})^{n-k} && \text{Using the properties of diagonal matrices}\\
+&= (\transformedSourceGrid_{i,j})  ({\horizontalEigens_{j,j}})^{n} \sum_{k = 0}^t {t \choose k} (\frac{\verticalEigens_{i,i}}{\horizontalEigens_{j,j}})^{k} &&\text{Pulling out the constant factors}\\
+&= (\transformedSourceGrid_{i,j})  ({\horizontalEigens_{j,j}})^{n} (1 + \frac{\verticalEigens_{i,i}}{\horizontalEigens_{j,j}})^{n} &&\text{Simplifying using the binomial theorem}\\
+&= (\transformedSourceGrid_{i,j})  ({\horizontalEigens_{j,j}}+ \verticalEigens_{i,i})^{n} = C_{i,j} &&\text{Canceling}\\
 \end{flalign*}
 \begin{flalign*}
 \sourceGrid_t &= \verticalBasis C \horizontalBasis^{-1} &&
@@ -240,8 +236,14 @@ Running on an i5-9600K 6 cores, 6 threads. 4.60 GHZ \\ \\
 	2500, 0.016248, 0.003800
 \end{filecontents*}
 Running on an i5-8250U 4 cores, 8 threads. 3.40 GHZ \\ \\
+\pgfplotsset{scaled y ticks=false}
 \begin{tikzpicture}
-	\begin{axis} [xmax = 2550, ylabel={Percent error},xlabel={size and iterations},legend pos=north west]
+	\begin{axis} [xmax = 2550, 
+								ylabel={Percent error},
+								xlabel={size and iterations},
+								legend pos=north west,
+								yticklabel style={/pgf/number format/fixed}
+								]
 	\addplot table [x=iterations,y=max, col sep=comma] {data3.csv};
 	\addplot table [x=iterations,y=average, col sep=comma] {data3.csv};
 	\addlegendentry{Max element error}
@@ -249,7 +251,9 @@ Running on an i5-8250U 4 cores, 8 threads. 3.40 GHZ \\ \\
 	\end{axis}
 \end{tikzpicture}
 
-
+\subsection*{Future work}
+If I continue working on this algorithm I am fairly confident I can generalize it to work on arbitrary sized star stencils in $N$ dimensions. 
+I am unsure if this method would apply to blocked stencils. This is something I can possibly investigate after, but intuitively I expect it to be less efficient. 
 \bibliographystyle{ieeetr}
 \bibliography{citation} 
 \end{document}
