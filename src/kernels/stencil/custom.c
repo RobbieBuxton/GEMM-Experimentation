@@ -139,6 +139,7 @@ void diagonalize_matrix(float *A, int n, int m, float *PT, float *D, float *PINV
 	}
 	int column_spacing = 1;
 	float* p = calloc(sizeof(float),n);
+
 	// scalling
 	for (int i = 0; i < n; i++)
 	{
@@ -156,4 +157,15 @@ void diagonalize_matrix(float *A, int n, int m, float *PT, float *D, float *PINV
 			}
 		}
 	}
+
+	//For test
+	printf("PT\n");
+	print_matrix(PT,n,n);
+	printf("PINV\n");
+	print_matrix(PINV,n,n);
+	float* temp = calloc(sizeof(float),n*n);
+	cblas_sgemm(CblasRowMajor, CblasTrans, CblasNoTrans, n, n, n, 1.0, PT, n, PINV, n, 0.0, temp, n);
+	printf("PT*PINV\n");
+	print_matrix(temp,n,n);
+
 }
