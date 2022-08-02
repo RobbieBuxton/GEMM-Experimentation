@@ -24,8 +24,8 @@ int main (int argc, char* argv[]) {
 
 	float gamma = 0.6;
 	float a_n1 = 0.1;
-	float a_1 = 0.01;
-	float b_n1 = 0.1;
+	float a_1 = 0.5;
+	float b_n1 = 0.3;
 	float b_1 = 0.1;
 
 	printf("Stencil\n");

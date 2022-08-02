@@ -38,13 +38,13 @@ int custom_linear_convection_kernel(float** stencil, struct dataobj *restrict u_
 	// Create Horizontal Transform
 	float* H = calloc(sizeof(float),(n)*(n));
 	H[0] = stencil[1][1];
-	H[1] = stencil[1][2];
+	H[1] = stencil[1][0];
 	for (int i = 1; i < n - 1; i ++) {
-		H[(i)*(n+1)-1] = stencil[1][0];
+		H[(i)*(n+1)-1] = stencil[1][2];
 		H[(i)*(n+1)] = stencil[1][1];
-		H[(i)*(n+1)+1] = stencil[1][2];
+		H[(i)*(n+1)+1] = stencil[1][0];
 	}
-	H[n*n-2] = stencil[1][0];
+	H[n*n-2] = stencil[1][2];
 	H[n*n-1] = stencil[1][1];
 
 	float *PHT = calloc(sizeof(float), n * n);
@@ -101,6 +101,8 @@ int custom_linear_convection_kernel(float** stencil, struct dataobj *restrict u_
 	float* m2 = calloc(sizeof(float),n*n);
 	cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, n, n, n, 1.0, V, n, S, n, 0.0, m1, n);
 	cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, n, n, n, 1.0, S, n, H, n, 1.0, m1, n);
+
+	printf("Matrix mult, calculated solution\n");
 	print_matrix(m1,n,n);
 
 	free(H);	

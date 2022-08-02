@@ -61,9 +61,11 @@ int devito_linear_convection_kernel(float** stencil, struct dataobj *restrict u_
 							// 			u[t0][x + 1][y + 1]);
 
 							u[t1][x + 1][y + 1] = 
-								stencil[0][0]*(u[t0][x + 1][y]) + stencil[0][2]*(u[t0][x + 1][y + 2]) +
-								stencil[1][0]*(u[t0][x][y + 1]) + stencil[1][2]*(u[t0][x + 2][y + 1]) +  
-								(stencil[0][1]+ stencil[1][1])*u[t0][x + 1][y + 1];
+																									        stencil[0][0]*(u[t0][x + 1][y]) +
+								stencil[1][0]*(u[t0][x][y + 1]) + (stencil[0][1] + stencil[1][1])*u[t0][x + 1][y + 1] +  stencil[1][2]*(u[t0][x + 2][y + 1]) +  
+								                                        stencil[0][2]*(u[t0][x + 1][y + 2]);
+								
+								
 						}
 					}
 				}
