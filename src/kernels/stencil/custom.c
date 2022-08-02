@@ -9,7 +9,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <cblas.h>
-// #include "matrix_helpers.h"
 #include <math.h>
 
 #ifndef M_PI
@@ -55,17 +54,25 @@ int custom_linear_convection_kernel(float** stencil, struct dataobj *restrict u_
 	float *PVINV = calloc(sizeof(float), n * n);
 	float *temp1 = calloc(sizeof(float), n * n);
 	float *temp2 = calloc(sizeof(float), n * n);
-	print_matrix(V,n,n);
+	
 	diagonalize_matrix(V, n, n, PVT, DV, PVINV);
-	print_matrix(H,n,n);
+	printf("PVT\n");
+	print_matrix(PVT,n,n);
+	printf("PVINV\n");
+	print_matrix(PVINV,n,n);
 	diagonalize_matrix(H, n, n, PHT, DH, PHINV);
+	float* m1 = calloc(sizeof(float),n*n);
+	float* m2 = calloc(sizeof(float),n*n);
+	cblas_sgemm(CblasRowMajor, CblasTrans, CblasNoTrans, n, n, n, 1.0, PVT, n, DV, n, 0.0, m1, n);
+	cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, n, n, n, 1.0, m1, n, PVINV, n, 0.0, m2, n);
+	printf("PVT * DT * PVINV\n");
+	print_matrix(m2,n,n);
 
 	float *T = calloc(sizeof(float), n * n);
 
   //Combine PV^-1 * S * PH = T
 	cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, n, n, n, 1.0, PVINV, n, S, n, 0.0, temp1, n);
 	cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasTrans, n, n, n, 1.0, temp1, n, PHT, n, 0.0, T, n);
-	
 	
 	float *H_eigen = malloc(sizeof(float) * n);
 	float *V_eigen = malloc(sizeof(float) * n);
@@ -113,7 +120,7 @@ void diagonalize_matrix(float *A, int n, int m, float *PT, float *D, float *PINV
 	float a = A[n];
 	float b = A[n + 1];
 	float c = A[n + 2];
-	// printf("%f %f %f\n",a,b,c);
+
 	float *eigen_values = malloc(sizeof(float) * n);
 
 	float pwr;
@@ -156,22 +163,6 @@ void diagonalize_matrix(float *A, int n, int m, float *PT, float *D, float *PINV
 			}
 		}
 	}
-
-	// printf("PT\n");
-	// print_matrix(PT,n,n);
-	// printf("D\n");
-	// print_matrix(D,n,n);
-	// printf("PINV\n");
-	// print_matrix(PINV,n,n);
-	// float* holder1 = calloc(sizeof(float),n*n);
-	// float* holder2 = calloc(sizeof(float),n*n);
-	// cblas_sgemm(CblasRowMajor, CblasTrans, CblasNoTrans, n, n, n, 1.0, PT, n, D, n, 0.0, holder1, n);
-	// cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, n, n, n, 1.0, holder1, n, PINV, n, 0.0, holder2, n);
-	// printf("PT * D * PINV\n");
-	// print_matrix(holder2,n,n);
-// 	cblas_sgemm(CblasRowMajor, CblasTrans, CblasNoTrans, n, n, n, 1.0, PT, n, PINV, n, 0.0, holder2, n);
-// 	printf("PT * PINV\n");
-// 	print_matrix(holder2,n,n);
 }
 
 float vector_mag(float* vector, int size, int spacing) {
@@ -179,5 +170,5 @@ float vector_mag(float* vector, int size, int spacing) {
 	for (int i = 0; i < size; i++) {
 		cum_sum += powf(vector[i*spacing],2);
 	}
-	return sqrt(cum_sum);
+	return sqrtf(cum_sum);
 }

@@ -19,14 +19,14 @@
 int main (int argc, char* argv[]) {
 
 	int steps = 1;
-	int size_scale = 5;
+	int size_scale = 1000;
 	int iterations_scale = 1;
 
 	float gamma = 0.6;
-	float a_n1 = 0.24;
-	float a_1 = 0.5;
-	float b_n1 = 0.3;
-	float b_1 = 0.01;
+	float a_n1 = 0.1;
+	float a_1 = 0.1;
+	float b_n1 = 0.1;
+	float b_1 = 0.1;
 
 	printf("Stencil\n");
 	printf("|%+f \x1B[32m%+f\x1B[0m %+f |\n|\x1B[32m%+f %+f %+f\x1B[0m |\n|%+f \x1B[32m%+f\x1B[0m %+f |\n",0.0 , a_n1, 0.0, b_n1, gamma, b_1, 0.0, a_1, 0.0);
