@@ -132,18 +132,18 @@ void diagonalize_matrix(float *A, int n, int m, float *PT, float *D, float *PINV
 				pwr = (n-i)/2.0;
 				trig = sinf(((n-i)*(n-j)*M_PI)/(n+1));
 
-				PT[i + j * n] = powf(a/c,pwr)*trig;
-				PINV[i + j * n] = powf(c/a,pwr)*trig;
+				PINV[i + j * n] = powf(a/c,pwr)*trig;
+				PT[i + j * n] = powf(c/a,pwr)*trig;
 			}
 		}
 	}
-	int column_spacing = 1;
+	int column_spacing = n;
 	float* p = calloc(sizeof(float),n);
 
 	// scalling
 	for (int i = 0; i < n; i++)
 	{
-		p[i] = 1 / sdot_(&n, PT + i * n, &column_spacing, PINV + i * n, &column_spacing);
+		p[i] = 1 / sdot_(&n, PT + i, &column_spacing, PINV + i, &column_spacing);
 	}
 
 	#pragma omp parallel num_threads(THREAD_NUMBER)
@@ -153,17 +153,28 @@ void diagonalize_matrix(float *A, int n, int m, float *PT, float *D, float *PINV
 		{
 			D[i + n * i] = eigen_values[i];
 			for (int k = 0; k < n; k++){
-				PT[i * n + k] *= p[i];
+				PT[i + k*n] *= p[i];
+				PINV[i + k*n] *= 1;
 			}
 		}
 	}
 
-	if (n <= 10) {
-		float* holder1 = calloc(sizeof(float),n*n);
-		float* holder2 = calloc(sizeof(float),n*n);
-		cblas_sgemm(CblasRowMajor, CblasTrans, CblasNoTrans, n, n, n, 1.0, PT, n, D, n, 0.0, holder1, n);
-		cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, n, n, n, 1.0, holder1, n, PINV, n, 0.0, holder2, n);
-		printf("PT * D * PINV\n");
-		print_matrix(holder2,n,n);
+	printf("PT\n");
+	print_matrix(PT,n,n);
+	printf("PINV\n");
+	print_matrix(PINV,n,n);
+	float* holder1 = calloc(sizeof(float),n*n);
+	float* holder2 = calloc(sizeof(float),n*n);
+	cblas_sgemm(CblasRowMajor, CblasTrans, CblasNoTrans, n, n, n, 1.0, PT, n, D, n, 0.0, holder1, n);
+	cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, n, n, n, 1.0, holder1, n, PINV, n, 0.0, holder2, n);
+	printf("PT * D * PINV\n");
+	print_matrix(holder2,n,n);
+}
+
+float vector_mag(float* vector, int size, int spacing) {
+	float cum_sum = 0; 
+	for (int i = 0; i < size; i++) {
+		cum_sum += powf(vector[i*spacing],2);
 	}
+	return sqrt(cum_sum);
 }
