@@ -55,8 +55,9 @@ int custom_linear_convection_kernel(float** stencil, struct dataobj *restrict u_
 	float *PVINV = calloc(sizeof(float), n * n);
 	float *temp1 = calloc(sizeof(float), n * n);
 	float *temp2 = calloc(sizeof(float), n * n);
-
+	print_matrix(V,n,n);
 	diagonalize_matrix(V, n, n, PVT, DV, PVINV);
+	print_matrix(H,n,n);
 	diagonalize_matrix(H, n, n, PHT, DH, PHINV);
 
 	float *T = calloc(sizeof(float), n * n);
@@ -89,21 +90,8 @@ int custom_linear_convection_kernel(float** stencil, struct dataobj *restrict u_
 		}
 	}
 
-
-
-	cblas_sgemm(CblasRowMajor, CblasTrans, CblasNoTrans, n, n, n, 1.0, PHT, n, temp2, n, 0.0, temp1, n);
-	cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, n, n, n, 1.0, temp1, n, PVINV, n, 0.0, result, n);
-	
-	print_matrix(V,n,n);
-	print_matrix(H,n,n);
-
-	float* m1 = calloc(sizeof(float),n*n);
-	float* m2 = calloc(sizeof(float),n*n);
-	cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, n, n, n, 1.0, V, n, S, n, 0.0, m1, n);
-	cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, n, n, n, 1.0, S, n, H, n, 1.0, m1, n);
-
-	printf("Matrix mult, calculated solution\n");
-	print_matrix(m1,n,n);
+	cblas_sgemm(CblasRowMajor, CblasTrans, CblasNoTrans, n, n, n, 1.0, PVT, n, temp2, n, 0.0, temp1, n);
+	cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, n, n, n, 1.0, temp1, n, PHINV, n, 0.0, result, n);
 
 	free(H);	
 	free(PHT);
@@ -181,9 +169,9 @@ void diagonalize_matrix(float *A, int n, int m, float *PT, float *D, float *PINV
 	// cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, n, n, n, 1.0, holder1, n, PINV, n, 0.0, holder2, n);
 	// printf("PT * D * PINV\n");
 	// print_matrix(holder2,n,n);
-	// cblas_sgemm(CblasRowMajor, CblasTrans, CblasNoTrans, n, n, n, 1.0, PT, n, PINV, n, 0.0, holder2, n);
-	// printf("PT * PINV\n");
-	// print_matrix(holder2,n,n);
+// 	cblas_sgemm(CblasRowMajor, CblasTrans, CblasNoTrans, n, n, n, 1.0, PT, n, PINV, n, 0.0, holder2, n);
+// 	printf("PT * PINV\n");
+// 	print_matrix(holder2,n,n);
 }
 
 float vector_mag(float* vector, int size, int spacing) {
