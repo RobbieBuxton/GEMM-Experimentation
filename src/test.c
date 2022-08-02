@@ -18,12 +18,18 @@
 
 int main (int argc, char* argv[]) {
 
+	int steps = 1;
+	int size_scale = 1000;
+	int iterations_scale = 1;
+
 	float gamma = 0.6;
-	float a_n1 = 0.05;
-	float a_1 = 0.15;
+	float a_n1 = 0.1;
+	float a_1 = 0.1;
 	float b_n1 = 0.1;
 	float b_1 = 0.1;
 
+	printf("Stencil\n");
+	printf("|%+f \x1B[32m%+f\x1B[0m %+f |\n|\x1B[32m%+f %+f %+f\x1B[0m |\n|%+f \x1B[32m%+f\x1B[0m %+f |\n",0.0 , a_n1, 0.0, b_n1, gamma, b_1, 0.0, a_1, 0.0);
 
 	float** stencil = calloc(sizeof(float*),2);
 	stencil[0] = calloc(sizeof(float),3);
@@ -34,7 +40,7 @@ int main (int argc, char* argv[]) {
 	stencil[1][0] = b_n1;
 	stencil[1][1] = gamma/2;
 	stencil[1][2] = b_1;
-	int steps = 1;
+
 		
 	FILE* fp1 = fopen("results.csv", "w");
 	if (fp1 == NULL)
@@ -56,8 +62,8 @@ int main (int argc, char* argv[]) {
 	{
 		devito_timers.section0 = 0;
 		custom_timers.section0 = 0;
-		int size = i*5;
-		int iterations = i*1;
+		int size = i*size_scale;
+		int iterations = i*iterations_scale;
 		printf("%d\n",iterations);
 
 		float* devito_result = calloc(sizeof(float),size * size);

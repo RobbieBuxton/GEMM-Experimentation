@@ -132,8 +132,8 @@ void diagonalize_matrix(float *A, int n, int m, float *PT, float *D, float *PINV
 				pwr = (n-i)/2.0;
 				trig = sinf(((n-i)*(n-j)*M_PI)/(n+1));
 
-				PT[j * n + i] = powf(a/c,pwr)*trig;
-				PINV[i * n + j] = powf(c/a,pwr)*trig;
+				PT[i + j * n] = powf(a/c,pwr)*trig;
+				PINV[i + j * n] = powf(c/a,pwr)*trig;
 			}
 		}
 	}
@@ -158,14 +158,12 @@ void diagonalize_matrix(float *A, int n, int m, float *PT, float *D, float *PINV
 		}
 	}
 
-	//For test
-	printf("PT\n");
-	print_matrix(PT,n,n);
-	printf("PINV\n");
-	print_matrix(PINV,n,n);
-	float* temp = calloc(sizeof(float),n*n);
-	cblas_sgemm(CblasRowMajor, CblasTrans, CblasNoTrans, n, n, n, 1.0, PT, n, PINV, n, 0.0, temp, n);
-	printf("PT*PINV\n");
-	print_matrix(temp,n,n);
-
+	if (n <= 10) {
+		float* holder1 = calloc(sizeof(float),n*n);
+		float* holder2 = calloc(sizeof(float),n*n);
+		cblas_sgemm(CblasRowMajor, CblasTrans, CblasNoTrans, n, n, n, 1.0, PT, n, D, n, 0.0, holder1, n);
+		cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, n, n, n, 1.0, holder1, n, PINV, n, 0.0, holder2, n);
+		printf("PT * D * PINV\n");
+		print_matrix(holder2,n,n);
+	}
 }
