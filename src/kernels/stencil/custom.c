@@ -65,7 +65,7 @@ int custom_linear_convection_kernel(float** stencil, struct dataobj *restrict u_
 	cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, n, n, n, 1.0, PVINV, n, S, n, 0.0, temp1, n);
 	cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasTrans, n, n, n, 1.0, temp1, n, PHT, n, 0.0, T, n);
 	
-
+	
 	float *H_eigen = malloc(sizeof(float) * n);
 	float *V_eigen = malloc(sizeof(float) * n);
 	float *HN_eigen = malloc(sizeof(float) * n);
@@ -77,8 +77,6 @@ int custom_linear_convection_kernel(float** stencil, struct dataobj *restrict u_
 		V_eigen[i] = DV[i + i * n];
 	}
 
-	
-	
 	#pragma omp parallel num_threads(THREAD_NUMBER)
 	{
 		#pragma omp for collapse(1) schedule(static,1)
@@ -91,11 +89,20 @@ int custom_linear_convection_kernel(float** stencil, struct dataobj *restrict u_
 		}
 	}
 
-	
-	
+
+
 	cblas_sgemm(CblasRowMajor, CblasTrans, CblasNoTrans, n, n, n, 1.0, PHT, n, temp2, n, 0.0, temp1, n);
 	cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, n, n, n, 1.0, temp1, n, PVINV, n, 0.0, result, n);
 	
+	print_matrix(V,n,n);
+	print_matrix(H,n,n);
+
+	float* m1 = calloc(sizeof(float),n*n);
+	float* m2 = calloc(sizeof(float),n*n);
+	cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, n, n, n, 1.0, V, n, S, n, 0.0, m1, n);
+	cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, n, n, n, 1.0, S, n, H, n, 1.0, m1, n);
+	print_matrix(m1,n,n);
+
 	free(H);	
 	free(PHT);
 	free(DH);
@@ -132,8 +139,8 @@ void diagonalize_matrix(float *A, int n, int m, float *PT, float *D, float *PINV
 				pwr = (n-i)/2.0;
 				trig = sinf(((i+1)*(j+1)*M_PI)/(n+1));
 
-				PT[i + j * n] = powf(a/c,pwr)*trig;
-				PINV[i + j * n] = powf(c/a,pwr)*trig;
+				PINV[i + j * n] = powf(a/c,pwr)*trig;
+				PT[i + j * n] = powf(c/a,pwr)*trig;
 			}
 		}
 	}
@@ -162,14 +169,16 @@ void diagonalize_matrix(float *A, int n, int m, float *PT, float *D, float *PINV
 
 	// printf("PT\n");
 	// print_matrix(PT,n,n);
+	// printf("D\n");
+	// print_matrix(D,n,n);
 	// printf("PINV\n");
 	// print_matrix(PINV,n,n);
-	float* holder1 = calloc(sizeof(float),n*n);
-	float* holder2 = calloc(sizeof(float),n*n);
-	cblas_sgemm(CblasRowMajor, CblasTrans, CblasNoTrans, n, n, n, 1.0, PT, n, D, n, 0.0, holder1, n);
-	cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, n, n, n, 1.0, holder1, n, PINV, n, 0.0, holder2, n);
-	printf("PT * D * PINV\n");
-	print_matrix(holder2,n,n);
+	// float* holder1 = calloc(sizeof(float),n*n);
+	// float* holder2 = calloc(sizeof(float),n*n);
+	// cblas_sgemm(CblasRowMajor, CblasTrans, CblasNoTrans, n, n, n, 1.0, PT, n, D, n, 0.0, holder1, n);
+	// cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, n, n, n, 1.0, holder1, n, PINV, n, 0.0, holder2, n);
+	// printf("PT * D * PINV\n");
+	// print_matrix(holder2,n,n);
 	// cblas_sgemm(CblasRowMajor, CblasTrans, CblasNoTrans, n, n, n, 1.0, PT, n, PINV, n, 0.0, holder2, n);
 	// printf("PT * PINV\n");
 	// print_matrix(holder2,n,n);
