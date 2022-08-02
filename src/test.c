@@ -20,7 +20,7 @@ int main (int argc, char* argv[]) {
 
 	int steps = 1;
 	int size_scale = 1000;
-	int iterations_scale = 1;
+	int iterations_scale = 1000;
 
 	float gamma = 0.6;
 	float a_n1 = 0.1;

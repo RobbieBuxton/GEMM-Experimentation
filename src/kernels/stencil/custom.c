@@ -126,14 +126,14 @@ void diagonalize_matrix(float *A, int n, int m, float *PT, float *D, float *PINV
 		#pragma omp for collapse(1) schedule(static,1)
 		for (int j = 0; j < n; j++)
 		{
-			eigen_values[j] = b + 2 * sqrtf(a * c) * cosf(((n - j) * M_PI) / (n + 1));
+			eigen_values[j] = b + 2 * sqrtf(a * c) * cosf(((j+1) * M_PI) / (n + 1));
 			for (int i = 0; i < n; i++)
 			{
 				pwr = (n-i)/2.0;
-				trig = sinf(((n-i)*(n-j)*M_PI)/(n+1));
+				trig = sinf(((i+1)*(j+1)*M_PI)/(n+1));
 
-				PINV[i + j * n] = powf(a/c,pwr)*trig;
-				PT[i + j * n] = powf(c/a,pwr)*trig;
+				PT[i + j * n] = powf(a/c,pwr)*trig;
+				PINV[i + j * n] = powf(c/a,pwr)*trig;
 			}
 		}
 	}
@@ -152,6 +152,7 @@ void diagonalize_matrix(float *A, int n, int m, float *PT, float *D, float *PINV
 		for (int i = 0; i < n; i++)
 		{
 			D[i + n * i] = eigen_values[i];
+
 			for (int k = 0; k < n; k++){
 				PT[i + k*n] *= p[i];
 				PINV[i + k*n] *= 1;
@@ -159,16 +160,19 @@ void diagonalize_matrix(float *A, int n, int m, float *PT, float *D, float *PINV
 		}
 	}
 
-	printf("PT\n");
-	print_matrix(PT,n,n);
-	printf("PINV\n");
-	print_matrix(PINV,n,n);
+	// printf("PT\n");
+	// print_matrix(PT,n,n);
+	// printf("PINV\n");
+	// print_matrix(PINV,n,n);
 	float* holder1 = calloc(sizeof(float),n*n);
 	float* holder2 = calloc(sizeof(float),n*n);
 	cblas_sgemm(CblasRowMajor, CblasTrans, CblasNoTrans, n, n, n, 1.0, PT, n, D, n, 0.0, holder1, n);
 	cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, n, n, n, 1.0, holder1, n, PINV, n, 0.0, holder2, n);
 	printf("PT * D * PINV\n");
 	print_matrix(holder2,n,n);
+	// cblas_sgemm(CblasRowMajor, CblasTrans, CblasNoTrans, n, n, n, 1.0, PT, n, PINV, n, 0.0, holder2, n);
+	// printf("PT * PINV\n");
+	// print_matrix(holder2,n,n);
 }
 
 float vector_mag(float* vector, int size, int spacing) {
