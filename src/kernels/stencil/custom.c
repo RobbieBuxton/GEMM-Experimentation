@@ -137,14 +137,13 @@ void diagonalize_matrix(float *A, int n, int m, float *PT, float *D, float *PINV
 		#pragma omp for collapse(1) schedule(static,1)
 		for (int j = 0; j < n; j++)
 		{
-			eigen_values[j] = b + 2 * sqrtf(a * c) * cosf(((j+1) * M_PI) / (n + 1));
+			eigen_values[j] = (b + 2 * sqrtf(a * c) * cosf(((j+1) * M_PI) / (n + 1)));
 			for (int i = 0; i < n; i++)
 			{
-				pwr = (n-i)/2.0;
+				pwr = (i+1)/2.0;
 				trig = sinf(((i+1)*(j+1)*M_PI)/(n+1));
-
-				PINV[i + j * n] = powf(a/c,pwr)*trig;
-				PT[i + j * n] = powf(c/a,pwr)*trig;
+				PT[i + j * n] = powf(a/c,pwr)*trig;
+				PINV[i + j * n] = powf(c/a,pwr)*trig;
 			}
 		}
 	}
