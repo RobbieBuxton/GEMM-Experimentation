@@ -42,13 +42,13 @@ where V and H are tridiagonal Toeplitz matrices.
 \end{bmatrix} \in \mathbb{R}^{n\times n} \]
 \[\horizontalBands = 
 \begin{bmatrix}
-	\frac{\stencilMiddle}{2} & \stencilRight & & & & & & O \\ 
-	\stencilLeft & \frac{\stencilMiddle}{2} & \stencilRight & & & & & \\
-	& \stencilLeft & . & . & & & & \\
+	\frac{\stencilMiddle}{2} & \stencilLeft & & & & & & O \\ 
+	\stencilRight & \frac{\stencilMiddle}{2} & \stencilLeft & & & & & \\
+	& \stencilRight & . & . & & & & \\
 	& &  . & . & . & & &  \\
 	& & & . & . & . & & \\
-	& & & & . & .& \stencilRight \\
-	O & & & & &  \stencilLeft & \frac{\stencilMiddle}{2}
+	& & & & . & .& \stencilLeft \\
+	O & & & & &  \stencilRight & \frac{\stencilMiddle}{2}
 \end{bmatrix} \in \mathbb{R}^{n\times n}\] \\ 
 I believe this can be sped up by instead calculating
 \newcommand{\innerSum}{C}

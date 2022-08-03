@@ -56,6 +56,13 @@ int custom_linear_convection_kernel(float** stencil, struct dataobj *restrict u_
 	float *temp2 = calloc(sizeof(float), n * n);
 	
 	diagonalize_matrix(V, n, n, PVT, DV, PVINV);
+	float cum_mag_a = 0;
+	float cum_mag_b = 0;
+	for (int i = 0; i < n; i ++) {
+		cum_mag_a += vector_mag(PVT + i,n,n);
+		cum_mag_b += vector_mag(PVINV + i,n,n);
+	}
+	printf("%f, %f\n",cum_mag_a/n,cum_mag_b/n);
 	printf("PVT\n");
 	print_matrix(PVT,n,n);
 	printf("PVINV\n");
