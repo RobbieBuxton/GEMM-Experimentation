@@ -18,8 +18,6 @@
 int main(int argc, char *argv[])
 {
 
-// For the first test and third graph (error from first test)
-
 	if (argc < 11) {
 		printf("Error: too few arguments suplied\n");
 		return -1;
@@ -29,13 +27,11 @@ int main(int argc, char *argv[])
 		return -1;
 	}
 
-	// For the custom tests
 	int steps = atoi(argv[1]);
 	int size_scale = atoi(argv[2]);
 	int size_start = atoi(argv[3]);
 	int iterations_scale = atoi(argv[4]);
 	int iterations_start = atoi(argv[5]);
-
 
 	//Results are printed and stored in a csv called results.csv in the /src folder
 

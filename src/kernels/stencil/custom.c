@@ -73,13 +73,15 @@ int custom_linear_convection_kernel(float** stencil, struct dataobj *restrict u_
 	// for (int i = 0; i < n; i++) {
 	// 	printf("%f\n", PVINV[n-1 + i*n]);
 	// }
-	diagonalize_matrix(H, n, n, PHT, DH, PHINV);
-	float* m1 = calloc(sizeof(float),n*n);
-	float* m2 = calloc(sizeof(float),n*n);
-	cblas_sgemm(CblasRowMajor, CblasTrans, CblasNoTrans, n, n, n, 1.0, PVT, n, DV, n, 0.0, m1, n);
-	cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, n, n, n, 1.0, m1, n, PVINV, n, 0.0, m2, n);
+	// float* m1 = calloc(sizeof(float),n*n);
+	// float* m2 = calloc(sizeof(float),n*n);
+	// cblas_sgemm(CblasRowMajor, CblasTrans, CblasNoTrans, n, n, n, 1.0, PVT, n, DV, n, 0.0, m1, n);
+	// cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, n, n, n, 1.0, m1, n, PVINV, n, 0.0, m2, n);
 	// printf("PVT * DT * PVINV\n");
 	// print_matrix(m2,n,n);
+
+	diagonalize_matrix(H, n, n, PHT, DH, PHINV);
+
 
 	float *T = calloc(sizeof(float), n * n);
 
