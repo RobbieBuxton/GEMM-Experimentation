@@ -4,18 +4,21 @@
 #include "utils.h"
 
 void print_matrix(float *matrix, int m, int n) {
-    for(int i =0; i<n; i++){
-        printf("|");
-        for(int j=0; j<m; j++){
-						if (matrix[i*m+j] != 0) {
-							printf("\x1B[32m%+f \x1B[0m",matrix[i*m+j]);
-						} else {
-							printf("%+f ",matrix[i*m+j]);
-						}
-        }
-        printf("|\n");
-    }
-    printf("\n");
+	if (n > 15) {
+		return;
+	}
+	for(int i =0; i<n; i++){
+			printf("|");
+			for(int j=0; j<m; j++){
+					if ((matrix[i*m+j] > 0.000001) || (matrix[i*m+j] < -0.00001) ) {
+						printf("\x1B[32m%+f \x1B[0m",matrix[i*m+j]);
+					} else {
+						printf("%+f ",matrix[i*m+j]);
+					}
+			}
+			printf("|\n");
+	}
+	printf("\n");
 }
 
 void fill_stencil(float *matrix, int n, int m, int halo_padding) {

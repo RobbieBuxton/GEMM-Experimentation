@@ -32,23 +32,23 @@ Applied to a grid $\sourceGrid \in \mathbb{R}^{n \times n}$ $t$ times,
 where V and H are tridiagonal Toeplitz matrices. 
 \[ \verticalBands = 
 \begin{bmatrix}
-	\frac{\stencilMiddle}{2} & \stencilBottom & & & & & & O \\ 
-	\stencilTop & \frac{\stencilMiddle}{2} & \stencilBottom & & & & & \\
-	& \stencilTop & . & . & & & & \\
-	& &  . & . & . & & &  \\
-	& & & . & . & . & & \\
+	\frac{\stencilMiddle}{2} & \stencilBottom & & & & & O \\ 
+	\stencilTop & \frac{\stencilMiddle}{2} & \stencilBottom & & & & \\
+	& \stencilTop & . & . & & & \\
+	& &  . & . & . & &  \\
+	& & & . & . & . & \\
 	& & & & . & .& \stencilBottom \\
 	O & & & & &  \stencilTop & \frac{\stencilMiddle}{2}
 \end{bmatrix} \in \mathbb{R}^{n\times n} \]
 \[\horizontalBands = 
 \begin{bmatrix}
-	\frac{\stencilMiddle}{2} & \stencilRight & & & & & & O \\ 
-	\stencilLeft & \frac{\stencilMiddle}{2} & \stencilRight & & & & & \\
-	& \stencilLeft & . & . & & & & \\
-	& &  . & . & . & & &  \\
-	& & & . & . & . & & \\
-	& & & & . & .& \stencilRight \\
-	O & & & & &  \stencilLeft & \frac{\stencilMiddle}{2}
+	\frac{\stencilMiddle}{2} & \stencilLeft & & & & & O \\ 
+	\stencilRight & \frac{\stencilMiddle}{2} & \stencilLeft & & & & \\
+	& \stencilRight & . & . & & & \\
+	& &  . & . & . & &  \\
+	& & & . & . & . & \\
+	& & & & . & .& \stencilLeft \\
+	O & & & & &  \stencilRight & \frac{\stencilMiddle}{2}
 \end{bmatrix} \in \mathbb{R}^{n\times n}\] \\ 
 I believe this can be sped up by instead calculating
 \newcommand{\innerSum}{C}
@@ -72,6 +72,77 @@ algebraically because of the tridiagonal Toeplitz form of $\verticalBands$ and $
 \[ \verticalBasis_{i,j} = (\frac{\stencilTop}{\stencilBottom})^{\frac{j}{2}}\sin{\frac{ij\pi}{n+1}} \]
 \[ \horizontalEigens_{j,j} = \frac{\stencilMiddle}{2} + 2\sqrt{\stencilLeft \stencilRight}\cos{\frac{j\pi}{n+1}} \]
 \[ \verticalBasis_{i,j} = (\frac{\stencilLeft}{\stencilRight})^{\frac{j}{2}}\sin{\frac{ij\pi}{n+1}} \]
+\begin{flalign*}
+\begin{bmatrix}
+	\delta & \tau & & & & & O \\
+	\sigma  & \delta & \tau & & & &\\
+	& \sigma & . &  . & & & \\
+	& & . & . &  . & & \\
+	& & & . & . &  . & \\
+	& & & & . & .& \tau \\
+	O & & & & & \sigma & \delta
+\end{bmatrix} &= k X \Lambda X^{-1}
+\end{flalign*}
+\begin{flalign*}
+X &= 
+\begin{bmatrix}
+	\frac{\sigma}{\tau}^{\frac{1}{2}}\sin{\frac{\pi}{n+1}} & \frac{\sigma}{\tau}^{\frac{1}{2}}\sin{\frac{2\pi}{n+1}} & . & . &\frac{\sigma}{\tau}^{\frac{1}{2}}\sin{\frac{n\pi}{n+1}}\\
+	\frac{\sigma}{\tau}^{\frac{2}{2}}\sin{\frac{2\pi}{n+1}} & \frac{\sigma}{\tau}^{\frac{2}{2}}\sin{\frac{4\pi}{n+1}}& . & . &\frac{\sigma}{\tau}^{\frac{2}{2}}\sin{\frac{2n\pi}{n+1}}\\
+	. & . & . & . & . \\
+	. & . & . & . & . \\
+	\frac{\sigma}{\tau}^{\frac{n}{2}}\sin{\frac{n\pi}{n+1}} & \frac{\sigma}{\tau}^{\frac{n}{2}}\sin{\frac{2n\pi}{n+1}} & . & . &\frac{\sigma}{\tau}^{\frac{n}{2}}\sin{\frac{n^2\pi}{n+1}}
+\end{bmatrix} &&\\
+&= 
+\begin{bmatrix}
+	\frac{\sigma}{\tau}^{\frac{1}{2}} & & & & O \\
+	& \frac{\sigma}{\tau}^{\frac{2}{2}} & & & \\
+	& & . & & \\
+	& & & . & \\
+	O & & & & \frac{\sigma}{\tau}^{\frac{n}{2}} \\
+\end{bmatrix}
+\begin{bmatrix}
+	\sin{\frac{\pi}{n+1}} & \sin{\frac{2\pi}{n+1}} & . & . & \sin{\frac{n\pi}{n+1}}\\
+	\sin{\frac{2\pi}{n+1}} & \sin{\frac{4\pi}{n+1}}& . & . & \sin{\frac{2n\pi}{n+1}}\\
+	. & . & . & . & . \\
+	. & . & . & . & . \\
+	\sin{\frac{n\pi}{n+1}} & \sin{\frac{2n\pi}{n+1}} & . & . & \sin{\frac{n^2\pi}{n+1}}
+\end{bmatrix}
+\end{flalign*}
+\begin{flalign*}
+X^{-1} &= 
+\begin{bmatrix}
+	\frac{\tau}{\sigma}^{\frac{1}{2}}\sin{\frac{\pi}{n+1}} & \frac{\tau}{\sigma}^{\frac{1}{2}}\sin{\frac{2\pi}{n+1}} & . & . &\frac{\tau}{\sigma}^{\frac{1}{2}}\sin{\frac{n\pi}{n+1}}\\
+	\frac{\tau}{\sigma}^{\frac{2}{2}}\sin{\frac{2\pi}{n+1}} & \frac{\tau}{\sigma}^{\frac{2}{2}}\sin{\frac{4\pi}{n+1}}& . & . &\frac{\tau}{\sigma}^{\frac{2}{2}}\sin{\frac{2n\pi}{n+1}}\\
+	. & . & . & . & . \\
+	. & . & . & . & . \\
+	\frac{\tau}{\sigma}^{\frac{n}{2}}\sin{\frac{n\pi}{n+1}} & \frac{\tau}{\sigma}^{\frac{n}{2}}\sin{\frac{2n\pi}{n+1}} & . & . &\frac{\tau}{\sigma}^{\frac{n}{2}}\sin{\frac{n^2\pi}{n+1}}
+\end{bmatrix}^T &&\\
+&= 
+\begin{bmatrix}
+	\sin{\frac{\pi}{n+1}} & \sin{\frac{2\pi}{n+1}} & . & . & \sin{\frac{n\pi}{n+1}}\\
+	\sin{\frac{2\pi}{n+1}} & \sin{\frac{4\pi}{n+1}}& . & . & \sin{\frac{2n\pi}{n+1}}\\
+	. & . & . & . & . \\
+	. & . & . & . & . \\
+	\sin{\frac{n\pi}{n+1}} & \sin{\frac{2n\pi}{n+1}} & . & . & \sin{\frac{n^2\pi}{n+1}}
+\end{bmatrix}
+\begin{bmatrix}
+	\frac{\tau}{\sigma}^{\frac{1}{2}} & & & & O \\
+	& \frac{\tau}{\sigma}^{\frac{2}{2}} & & & \\
+	& & . & & \\
+	& & & . & \\
+	O & & & & \frac{\tau}{\sigma}^{\frac{n}{2}} 
+\end{bmatrix}
+\end{flalign*}
+\begin{flalign*}
+	\Lambda &= 
+	\begin{bmatrix}
+		\delta + 2 \sqrt{\sigma\delta} \cos \frac{\pi}{n+1} & & & & O \\
+		& \delta + 2 \sqrt{\sigma\delta} \cos \frac{2\pi}{n+1} & & & \\
+		& & . & & \\
+		& & & . & \\
+		O & & & & \delta + 2 \sqrt{\sigma\delta} \cos \frac{n\pi}{n+1}
+\end{bmatrix} &&
+\end{flalign*}
 \subsection*{Complexity and speed}
 I believe this algorithm has complexity $O(M)$ where M is the complexity of a matrix multiplication. 
 The algorithm is effectively bound by the time required to compute 4 matrix multiplications (at worst $n^3$). The last two of which are highly likely to be sparse \\ \\

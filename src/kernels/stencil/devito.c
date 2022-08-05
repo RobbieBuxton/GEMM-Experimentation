@@ -13,7 +13,7 @@
 #include "../../types.h"
 #include "../../utils.h"
 
-int devito_linear_convection_kernel(struct dataobj *restrict u_vec, const float dt, const float h_x, const float h_y, const int x0_blk0_size, const int y0_blk0_size, const int time_M, const int time_m, const int x_M, const int x_m, const int y_M, const int y_m, struct profiler * timers,float * result)
+int devito_linear_convection_kernel(float** stencil, struct dataobj *restrict u_vec, const float dt, const float h_x, const float h_y, const int x0_blk0_size, const int y0_blk0_size, const int time_M, const int time_m, const int x_M, const int x_m, const int y_M, const int y_m, struct profiler * timers,float * result)
 {
   
 	// printf("\ndt: %f h_x %f h_y %f i0x0_blk0_size %d i0x_ltkn %d i0x_rtkn %d i0y0_blk0_size %d i0y_ltkn %d i0y_rtkn %d time_M %d time_m %d x_M %d x_m %d y_M %d y_m %d\n",dt,h_x,h_y,i0x0_blk0_size,i0x_ltkn,i0x_rtkn,i0y0_blk0_size,i0y_ltkn,i0y_rtkn,time_M,time_m,x_M,x_m,y_M,y_m);
@@ -24,8 +24,6 @@ int devito_linear_convection_kernel(struct dataobj *restrict u_vec, const float 
   _MM_SET_DENORMALS_ZERO_MODE(_MM_DENORMALS_ZERO_ON);
   _MM_SET_FLUSH_ZERO_MODE(_MM_FLUSH_ZERO_ON);
 
-  float a = 0.0025;
-  float b = 0.99;
 	int nthreads = 8;
 	START_TIMER(section0)
 	
@@ -62,7 +60,12 @@ int devito_linear_convection_kernel(struct dataobj *restrict u_vec, const float 
 							// 			r2,
 							// 			u[t0][x + 1][y + 1]);
 
-							u[t1][x + 1][y + 1] = a*(u[t0][x][y + 1]) + a*(u[t0][x + 1][y]) + a*(u[t0][x + 2][y + 1]) + a*(u[t0][x + 1][y + 2]) + b*u[t0][x + 1][y + 1];
+							u[t1][x + 1][y + 1] = 
+																									        stencil[0][0]*(u[t0][x + 1][y]) +
+								stencil[1][0]*(u[t0][x][y + 1]) + (stencil[0][1] + stencil[1][1])*u[t0][x + 1][y + 1] +  stencil[1][2]*(u[t0][x + 2][y + 1]) +  
+								                                        stencil[0][2]*(u[t0][x + 1][y + 2]);
+								
+								
 						}
 					}
 				}
