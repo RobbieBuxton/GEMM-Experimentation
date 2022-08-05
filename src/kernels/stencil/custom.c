@@ -65,8 +65,14 @@ int custom_linear_convection_kernel(float** stencil, struct dataobj *restrict u_
 	printf("%f, %f\n",cum_mag_a/n,cum_mag_b/n);
 	printf("PVT\n");
 	print_matrix(PVT,n,n);
+	// for (int i = 0; i < n; i++) {
+	// 	printf("%f\n", PVT[n-1+ i*n]);
+	// }
 	printf("PVINV\n");
 	print_matrix(PVINV,n,n);
+	// for (int i = 0; i < n; i++) {
+	// 	printf("%f\n", PVINV[n-1 + i*n]);
+	// }
 	diagonalize_matrix(H, n, n, PHT, DH, PHINV);
 	float* m1 = calloc(sizeof(float),n*n);
 	float* m2 = calloc(sizeof(float),n*n);
@@ -140,10 +146,10 @@ void diagonalize_matrix(float *A, int n, int m, float *PT, float *D, float *PINV
 			eigen_values[j] = (b + 2 * sqrtf(a * c) * cosf(((j+1) * M_PI) / (n + 1)));
 			for (int i = 0; i < n; i++)
 			{
-				pwr = (i+1)/2.0;
+				pwr = ((i+1))/2.0 - n/4.0;
 				trig = sinf(((i+1)*(j+1)*M_PI)/(n+1));
-				PT[i + j * n] = powf(a/c,pwr)*trig;
-				PINV[i + j * n] = powf(c/a,pwr)*trig;
+				PT[i + j * n] = trig*powf(a/c,pwr);
+				PINV[i + j * n] = trig*powf(c/a,pwr);
 			}
 		}
 	}
@@ -165,7 +171,7 @@ void diagonalize_matrix(float *A, int n, int m, float *PT, float *D, float *PINV
 
 			for (int k = 0; k < n; k++){
 				PT[i + k*n] *= p[i];
-				PINV[i + k*n] *= 1;
+				// PINV[i + k*n] *= 1;
 			}
 		}
 	}

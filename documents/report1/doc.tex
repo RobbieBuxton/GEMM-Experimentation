@@ -86,6 +86,31 @@ algebraically because of the tridiagonal Toeplitz form of $\verticalBands$ and $
 \begin{flalign*}
 X &= 
 \begin{bmatrix}
+	\frac{\sigma}{\tau}^{\frac{1}{2}}\sin{\frac{\pi}{n+1}} & \frac{\sigma}{\tau}^{\frac{1}{2}}\sin{\frac{2\pi}{n+1}} & . & . &\frac{\sigma}{\tau}^{\frac{1}{2}}\sin{\frac{n\pi}{n+1}}\\
+	\frac{\sigma}{\tau}^{\frac{2}{2}}\sin{\frac{2\pi}{n+1}} & \frac{\sigma}{\tau}^{\frac{2}{2}}\sin{\frac{4\pi}{n+1}}& . & . &\frac{\sigma}{\tau}^{\frac{2}{2}}\sin{\frac{2n\pi}{n+1}}\\
+	. & . & . & . & . \\
+	. & . & . & . & . \\
+	\frac{\sigma}{\tau}^{\frac{n}{2}}\sin{\frac{n\pi}{n+1}} & \frac{\sigma}{\tau}^{\frac{n}{2}}\sin{\frac{2n\pi}{n+1}} & . & . &\frac{\sigma}{\tau}^{\frac{n}{2}}\sin{\frac{n^2\pi}{n+1}}
+\end{bmatrix} &&\\
+&= 
+\begin{bmatrix}
+	\frac{\sigma}{\tau}^{\frac{1}{2}} & & & & O \\
+	& \frac{\sigma}{\tau}^{\frac{2}{2}} & & & \\
+	& & . & & \\
+	& & & . & \\
+	O & & & & \frac{\sigma}{\tau}^{\frac{n}{2}} \\
+\end{bmatrix}
+\begin{bmatrix}
+	\sin{\frac{\pi}{n+1}} & \sin{\frac{2\pi}{n+1}} & . & . & \sin{\frac{n\pi}{n+1}}\\
+	\sin{\frac{2\pi}{n+1}} & \sin{\frac{4\pi}{n+1}}& . & . & \sin{\frac{2n\pi}{n+1}}\\
+	. & . & . & . & . \\
+	. & . & . & . & . \\
+	\sin{\frac{n\pi}{n+1}} & \sin{\frac{2n\pi}{n+1}} & . & . & \sin{\frac{n^2\pi}{n+1}}
+\end{bmatrix}
+\end{flalign*}
+\begin{flalign*}
+X^{-1} &= 
+\begin{bmatrix}
 	\frac{\tau}{\sigma}^{\frac{1}{2}}\sin{\frac{\pi}{n+1}} & \frac{\tau}{\sigma}^{\frac{1}{2}}\sin{\frac{2\pi}{n+1}} & . & . &\frac{\tau}{\sigma}^{\frac{1}{2}}\sin{\frac{n\pi}{n+1}}\\
 	\frac{\tau}{\sigma}^{\frac{2}{2}}\sin{\frac{2\pi}{n+1}} & \frac{\tau}{\sigma}^{\frac{2}{2}}\sin{\frac{4\pi}{n+1}}& . & . &\frac{\tau}{\sigma}^{\frac{2}{2}}\sin{\frac{2n\pi}{n+1}}\\
 	. & . & . & . & . \\
@@ -116,32 +141,7 @@ X &=
 		& & . & & \\
 		& & & . & \\
 		O & & & & \delta + 2 \sqrt{\sigma\delta} \cos \frac{n\pi}{n+1}
-	\end{bmatrix} &&
-	\end{flalign*}
-\begin{flalign*}
-X^{-1} &= 
-\begin{bmatrix}
-	\frac{\sigma}{\tau}^{\frac{1}{2}}\sin{\frac{\pi}{n+1}} & \frac{\sigma}{\tau}^{\frac{1}{2}}\sin{\frac{2\pi}{n+1}} & . & . &\frac{\sigma}{\tau}^{\frac{1}{2}}\sin{\frac{n\pi}{n+1}}\\
-	\frac{\sigma}{\tau}^{\frac{2}{2}}\sin{\frac{2\pi}{n+1}} & \frac{\sigma}{\tau}^{\frac{2}{2}}\sin{\frac{4\pi}{n+1}}& . & . &\frac{\sigma}{\tau}^{\frac{2}{2}}\sin{\frac{2n\pi}{n+1}}\\
-	. & . & . & . & . \\
-	. & . & . & . & . \\
-	\frac{\sigma}{\tau}^{\frac{n}{2}}\sin{\frac{n\pi}{n+1}} & \frac{\sigma}{\tau}^{\frac{n}{2}}\sin{\frac{2n\pi}{n+1}} & . & . &\frac{\sigma}{\tau}^{\frac{n}{2}}\sin{\frac{n^2\pi}{n+1}}
-\end{bmatrix} &&\\
-&= 
-\begin{bmatrix}
-	\frac{\sigma}{\tau}^{\frac{1}{2}} & & & & O \\
-	& \frac{\sigma}{\tau}^{\frac{2}{2}} & & & \\
-	& & . & & \\
-	& & & . & \\
-	O & & & & \frac{\sigma}{\tau}^{\frac{n}{2}} \\
-\end{bmatrix}
-\begin{bmatrix}
-	\sin{\frac{\pi}{n+1}} & \sin{\frac{2\pi}{n+1}} & . & . & \sin{\frac{n\pi}{n+1}}\\
-	\sin{\frac{2\pi}{n+1}} & \sin{\frac{4\pi}{n+1}}& . & . & \sin{\frac{2n\pi}{n+1}}\\
-	. & . & . & . & . \\
-	. & . & . & . & . \\
-	\sin{\frac{n\pi}{n+1}} & \sin{\frac{2n\pi}{n+1}} & . & . & \sin{\frac{n^2\pi}{n+1}}
-\end{bmatrix}
+\end{bmatrix} &&
 \end{flalign*}
 \subsection*{Complexity and speed}
 I believe this algorithm has complexity $O(M)$ where M is the complexity of a matrix multiplication. 
