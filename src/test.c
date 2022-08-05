@@ -18,19 +18,24 @@
 int main(int argc, char *argv[])
 {
 
-	// For the first test and third graph (error from first test)
-	// int steps = 9;
-	// int size_scale = 250;
-	// int size_start = 250;
-	// int iterations_scale = 250;
-	// int iterations_start = 250;
+// For the first test and third graph (error from first test)
 
-	// For the second test
-	int steps = 49;
-	int size_scale = 0;
-	int size_start = 2000;
-	int iterations_scale = 25;
-	int iterations_start = 25;
+	if (argc < 11) {
+		printf("Error: too few arguments suplied\n");
+		return -1;
+	}
+	if (argc > 11) {
+		printf("Error: too many arguments suplied\n");
+		return -1;
+	}
+
+	// For the custom tests
+	int steps = atoi(argv[1]);
+	int size_scale = atoi(argv[2]);
+	int size_start = atoi(argv[3]);
+	int iterations_scale = atoi(argv[4]);
+	int iterations_start = atoi(argv[5]);
+
 
 	//Results are printed and stored in a csv called results.csv in the /src folder
 
@@ -40,11 +45,11 @@ int main(int argc, char *argv[])
 	// 		    a_1
 
 	// Because of the scaling bug atm a_n1 === a_1 and b_n1 === b_1 or it will overflow the floats
-	float gamma = 0.6;
-	float a_n1 = 0.05;
-	float a_1 = 0.05;
-	float b_n1 = 0.15;
-	float b_1 = 0.15;
+	float gamma = atof(argv[6]);
+	float a_n1 = atof(argv[7]);
+	float a_1 = atof(argv[8]);
+	float b_n1 = atof(argv[9]);
+	float b_1 = atof(argv[10]);
 
 	return compare_stencil(steps, size_scale, size_start, iterations_scale, iterations_start, gamma, a_n1, a_1, b_n1, b_1);
 }
