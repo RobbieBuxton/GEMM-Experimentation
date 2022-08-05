@@ -1,4 +1,4 @@
-.DEFAULT_GOAL := make
+.DEFAULT_GOAL := test
 
 CC=gcc
 CFLAGS= -O3 -g -fPIC -Wall -std=c99 -march=native -Wno-unused-result -Wno-unused-variable -Wno-unused-but-set-variable -ffast-math -fopenmp
