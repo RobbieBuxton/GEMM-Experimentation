@@ -1,0 +1,19 @@
+\documentclass{article}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{accents}
+\usepackage{pgfplots}
+\usepackage{filecontents}  
+\usepackage{listings}
+\lstset{
+  basicstyle=\ttfamily,
+  mathescape
+}
+\begin{document}
+\title{Faster Method for Stencil computation}
+\author{Robbie Buxton}
+\maketitle
+\[g(A) = XAX \]
+\[f(A,B,C,m)_{ij} = A_{ij}(B_{ii} + C_{jj})^m \]
+\[ S_T =  A \times g(f(g(A^{-1} \times S \times B),\Lambda_V,\Lambda_H,t)) \times B^{-1} \]
+\end{document}
