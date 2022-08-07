@@ -98,10 +98,10 @@ For $N$ dimensions $n$ Toeplitz matrices need to be diagonalized, if the matrice
 &=   \verticalBasis (\sum_{k = 0}^t {t \choose k} \verticalEigens^{k} \transformedSourceGrid \horizontalEigens^{n-k}) \horizontalBasis^{-1} &&\text{Taking the basis change out of the sum}\\
 \end{flalign*}
 \begin{flalign*}
-({\sum_{k = 0}^t {t \choose k} \verticalEigens^{k} \transformedSourceGrid \horizontalEigens^{n-k}})_{i,j} &= \sum_{k = 0}^t {t \choose k} ({\verticalEigens_{i,i}})^{k} (\transformedSourceGrid_{i,j}) ({\horizontalEigens_{j,j}})^{n-k} && \text{Using the properties of diagonal matrices}\\
-&= (\transformedSourceGrid_{i,j})  ({\horizontalEigens_{j,j}})^{n} \sum_{k = 0}^t {t \choose k} (\frac{\verticalEigens_{i,i}}{\horizontalEigens_{j,j}})^{k} &&\text{Pulling out the constant factors}\\
-&= (\transformedSourceGrid_{i,j})  ({\horizontalEigens_{j,j}})^{n} (1 + \frac{\verticalEigens_{i,i}}{\horizontalEigens_{j,j}})^{n} &&\text{Simplifying using the binomial theorem}\\
-&= (\transformedSourceGrid_{i,j})  ({\horizontalEigens_{j,j}}+ \verticalEigens_{i,i})^{n} = C_{i,j} &&\text{Canceling}\\
+({\sum_{k = 0}^t {t \choose k} \verticalEigens^{k} \transformedSourceGrid \horizontalEigens^{n-k}})_{i,j} &= \sum_{k = 0}^t {t \choose k} ({\verticalEigens_{i,i}})^{k} (\transformedSourceGrid_{i,j}) ({\horizontalEigens_{j,j}})^{t-k} && \text{Using the properties of diagonal matrices}\\
+&= (\transformedSourceGrid_{i,j})  ({\horizontalEigens_{j,j}})^{t} \sum_{k = 0}^t {t \choose k} (\frac{\verticalEigens_{i,i}}{\horizontalEigens_{j,j}})^{k} &&\text{Pulling out the constant factors}\\
+&= (\transformedSourceGrid_{i,j})  ({\horizontalEigens_{j,j}})^{t} (1 + \frac{\verticalEigens_{i,i}}{\horizontalEigens_{j,j}})^{t} &&\text{Simplifying using the binomial theorem}\\
+&= (\transformedSourceGrid_{i,j})  ({\horizontalEigens_{j,j}}+ \verticalEigens_{i,i})^{t} = C_{i,j} &&\text{Canceling}\\
 \end{flalign*}
 \begin{flalign*}
 \sourceGrid_t &= \verticalBasis C \horizontalBasis^{-1} &&
@@ -145,34 +145,6 @@ For $N$ dimensions $n$ Toeplitz matrices need to be diagonalized, if the matrice
 	3400, 168.635349, 3.278498
 	3500, 180.232800, 3.656672
 \end{filecontents*}
-\begin{filecontents*}{data3.csv}
-	iterations, max, average
-	100, 0.000799, 0.000234
-	200, 0.002205, 0.000294
-	300, 0.001442, 0.000488
-	400, 0.001979, 0.000399
-	500, 0.002968, 0.001078
-	600, 0.005603, 0.000918
-	700, 0.006598, 0.001099
-	800, 0.004888, 0.001594
-	900, 0.003040, 0.000717
-	1000, 0.008368, 0.001053
-	1100, 0.005782, 0.002070
-	1200, 0.009882, 0.004165
-	1300, 0.006735, 0.003384
-	1400, 0.007641, 0.002941
-	1500, 0.012362, 0.002723
-	1600, 0.011587, 0.002277
-	1700, 0.010204, 0.002933
-	1800, 0.008976, 0.002819
-	1900, 0.009274, 0.002207
-	2000, 0.012398, 0.002593
-	2100, 0.008714, 0.002496
-	2200, 0.014281, 0.004674
-	2300, 0.014406, 0.004258
-	2400, 0.014293, 0.004080
-	2500, 0.016248, 0.003800
-\end{filecontents*}
 \begin{filecontents*}{data2.csv}
 	iterations, devito, custom
 	25, 0.392590, 0.790663
@@ -215,6 +187,113 @@ For $N$ dimensions $n$ Toeplitz matrices need to be diagonalized, if the matrice
 	950, 12.517497, 0.949448
 	975, 12.787292, 0.898449
 	1000, 13.123104, 0.853687
+\end{filecontents*}
+\begin{filecontents*}{data3.csv}
+	iterations, max, average
+	100, 0.000799, 0.000234
+	200, 0.002205, 0.000294
+	300, 0.001442, 0.000488
+	400, 0.001979, 0.000399
+	500, 0.002968, 0.001078
+	600, 0.005603, 0.000918
+	700, 0.006598, 0.001099
+	800, 0.004888, 0.001594
+	900, 0.003040, 0.000717
+	1000, 0.008368, 0.001053
+	1100, 0.005782, 0.002070
+	1200, 0.009882, 0.004165
+	1300, 0.006735, 0.003384
+	1400, 0.007641, 0.002941
+	1500, 0.012362, 0.002723
+	1600, 0.011587, 0.002277
+	1700, 0.010204, 0.002933
+	1800, 0.008976, 0.002819
+	1900, 0.009274, 0.002207
+	2000, 0.012398, 0.002593
+	2100, 0.008714, 0.002496
+	2200, 0.014281, 0.004674
+	2300, 0.014406, 0.004258
+	2400, 0.014293, 0.004080
+	2500, 0.016248, 0.003800
+\end{filecontents*}
+\begin{filecontents*}{data4.csv}
+	size, max, average
+	5, 0.000019, 0.000007
+	6, 0.000042, 0.000022
+	7, 0.000075, 0.000017
+	8, 0.000226, 0.000060
+	9, 0.000395, 0.000066
+	10, 0.000527, 0.000076
+	11, 0.001098, 0.000134
+	12, 0.000632, 0.000118
+	13, 0.002152, 0.000304
+	14, 0.004323, 0.000391
+	15, 0.009149, 0.000629
+	16, 0.014933, 0.001347
+	17, 0.029903, 0.002752
+	18, 0.042859, 0.003607
+	19, 0.085818, 0.005242
+	20, 0.123752, 0.012589
+	21, 0.324563, 0.027097
+	22, 0.586343, 0.039287
+	23, 1.090959, 0.053831
+	24, 2.226459, 0.113995
+	25, 3.634233, 0.189355
+	26, 6.544677, 0.377568
+	27, 11.208006, 0.550721
+	28, 22.636242, 0.989001
+	29, 33.034134, 1.770268
+	30, 46.800076, 2.635431
+	31, 26.686535, 1.656947
+	32, 119.511116, 4.141746
+	33, 276.639313, 13.955151
+	34, 502.164520, 22.026218
+	35, 909.623047, 37.236996
+	36, 1745.604004, 76.496925
+	37, 1101.855225, 49.509197
+	38, 5450.058594, 156.450256
+	39, 13618.744141, 407.229553
+	40, 17132.111328, 511.650055
+	41, 19748.060547, 978.130493
+	42, 39096.378906, 1238.369995
+	43, 59454.277344, 2378.299561
+	44, 91432.867188, 2989.636719
+	45, 189948.187500, 7590.254395
+	46, 497111.781250, 16545.480469
+	47, 529746.562500, 18043.289062
+	48, 1372458.250000, 50781.460938
+	49, 2444652.750000, 97936.867188
+	50, 5969627.000000, 146088.203125
+	51, 4542711.500000, 139572.421875
+	52, 14374016.000000, 335811.375000
+	53, 17104556.000000, 434687.062500
+	54, 24676380.000000, 500046.062500
+	55, 38626264.000000, 1169593.500000
+	56, 62614152.000000, 1681438.750000
+	57, 131362800.000000, 4769295.000000
+	58, 205117360.000000, 5726507.000000
+	59, 504726208.000000, 15828993.000000
+	60, 1291807872.000000, 27637962.000000
+	61, 746402752.000000, 27183972.000000
+	62, 2176911104.000000, 47582868.000000
+	63, 2296603136.000000, 51423256.000000
+	64, 16794068992.000000, 270925536.000000
+	65, 23025313792.000000, 455330592.000000
+	66, 25805178880.000000, 674679168.000000
+	67, 51435831296.000000, 1049662784.000000
+	68, 103022862336.000000, 1827977984.000000
+	69, 52420931584.000000, 1155853824.000000
+	70, 141232209920.000000, 3619545088.000000
+	71, 327564394496.000000, 7128085504.000000
+	72, 847061581824.000000, 18270580736.000000
+	73, 2684208021504.000000, 47556616192.000000
+	74, 1102460485632.000000, 31618363392.000000
+	75, 2484895219712.000000, 48838410240.000000
+	76, 15249601200128.000000, 242095177728.000000
+	77, 13629240901632.000000, 162965716992.000000
+	78, 7935127715840.000000, 202720165888.000000
+	79, 43244616417280.000000, 900950720512.000000
+	80, 142117666029568.000000, 2070576627712.000000
 \end{filecontents*}
 \subsubsection*{Speed and Iterations}
 In the first test we are comparing the speed or the algorithm vs Devito for $n$ iteration of an $n \times n$ matrix. \\\\              
@@ -363,6 +442,21 @@ To see this in action you can run this test:
 	make
 	./test 75 1 5 0 1 0.6 0.1 0.1 0.15 0.05
 \end{lstlisting}
+Here is a plot of the data. \\ \\
+\begin{tikzpicture}
+	\begin{axis} [ymode=log,
+								xmax = 90, 
+								ylabel={Percent error},
+								xlabel={size},
+								legend pos=north west,
+								yticklabel style={/pgf/number format/fixed}
+								]
+	\addplot table [x=size,y=max, col sep=comma] {data4.csv};
+	\addplot table [x=size,y=average, col sep=comma] {data4.csv};
+	\addlegendentry{Max element error}
+	\addlegendentry{Average element error}
+	\end{axis}
+\end{tikzpicture}
 \subsection*{Future work}
 If I continue working on this algorithm I am fairly confident I can generalize it to work on arbitrary sized star stencils in $N$ dimensions. 
 I am unsure if this method would apply to blocked stencils. This is something I can possibly investigate after, but intuitively I expect it to be less efficient. 
