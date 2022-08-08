@@ -56,29 +56,21 @@ int custom_linear_convection_kernel(float** stencil, struct dataobj *restrict u_
 	float *temp2 = calloc(sizeof(float), n * n);
 	
 	diagonalize_matrix(V, n, n, PVT, DV, PVINV);
-	// float cum_mag_a = 0;
-	// float cum_mag_b = 0;
-	// for (int i = 0; i < n; i ++) {
-	// 	cum_mag_a += vector_mag(PVT + i,n,n);
-	// 	cum_mag_b += vector_mag(PVINV + i,n,n);
-	// }
-	// printf("%f, %f\n",cum_mag_a/n,cum_mag_b/n);
-	// printf("PVT\n");
-	// print_matrix(PVT,n,n);
-	// for (int i = 0; i < n; i++) {
-	// 	printf("%f\n", PVT[n-1+ i*n]);
-	// }
-	// printf("PVINV\n");
-	// print_matrix(PVINV,n,n);
-	// for (int i = 0; i < n; i++) {
-	// 	printf("%f\n", PVINV[n-1 + i*n]);
-	// }
-	// float* m1 = calloc(sizeof(float),n*n);
-	// float* m2 = calloc(sizeof(float),n*n);
-	// cblas_sgemm(CblasRowMajor, CblasTrans, CblasNoTrans, n, n, n, 1.0, PVT, n, DV, n, 0.0, m1, n);
-	// cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, n, n, n, 1.0, m1, n, PVINV, n, 0.0, m2, n);
-	// printf("PVT * DT * PVINV\n");
-	// print_matrix(m2,n,n);
+	printf("PVT\n");
+	print_matrix(PVT,n,n);
+
+	printf("DV\n");
+	print_matrix(DV,n,n);
+
+	printf("PVINV\n");
+	print_matrix(PVINV,n,n);
+
+	float* m1 = calloc(sizeof(float),n*n);
+	float* m2 = calloc(sizeof(float),n*n);
+	cblas_sgemm(CblasRowMajor, CblasTrans, CblasNoTrans, n, n, n, 1.0, PVT, n, DV, n, 0.0, m1, n);
+	cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, n, n, n, 1.0, m1, n, PVINV, n, 0.0, m2, n);
+	printf("PVT * DT * PVINV\n");
+	print_matrix(m2,n,n);
 
 	diagonalize_matrix(H, n, n, PHT, DH, PHINV);
 
@@ -140,6 +132,7 @@ void diagonalize_matrix(float *A, int n, int m, float *PT, float *D, float *PINV
 
 	float pwr;
 	float trig;
+
 	#pragma omp parallel num_threads(THREAD_NUMBER)
 	{
 		#pragma omp for collapse(1) schedule(static,1)
@@ -148,10 +141,10 @@ void diagonalize_matrix(float *A, int n, int m, float *PT, float *D, float *PINV
 			eigen_values[j] = (b + 2 * sqrtf(a * c) * cosf(((j+1) * M_PI) / (n + 1)));
 			for (int i = 0; i < n; i++)
 			{
-				pwr = ((i+1))/2.0 - n/4.0;
+				pwr = ((i))/2.0;
 				trig = sinf(((i+1)*(j+1)*M_PI)/(n+1));
-				PT[i + j * n] = trig*powf(a/c,pwr);
-				PINV[i + j * n] = trig*powf(c/a,pwr);
+				PT[i + j * n] = trig*powf(a/c,pwr-(n/2.0)+0.5);
+				PINV[i + j * n] = trig*powf(a/c,-pwr);
 			}
 		}
 	}
@@ -172,8 +165,8 @@ void diagonalize_matrix(float *A, int n, int m, float *PT, float *D, float *PINV
 			D[i + n * i] = eigen_values[i];
 
 			for (int k = 0; k < n; k++){
-				PT[i + k*n] *= p[i];
-				// PINV[i + k*n] *= 1;
+				PT[i + k*n] *= sqrtf(p[i]);
+				PINV[i + k*n] *= sqrtf(p[i]);
 			}
 		}
 	}
