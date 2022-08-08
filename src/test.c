@@ -96,13 +96,12 @@ int compare_stencil(int steps, int size_scale, int size_start, int iterations_sc
 		test_devito_stencil_kernel(stencil, 1, 1, iterations - 1, size, devito_result, &devito_timers);
 		test_custom_stencil_kernel(stencil, 1, 1, iterations, size, custom_result, &custom_timers);
 
-		if (size < 10)
-		{
-			printf("####DEVITO####\n");
-			print_matrix(devito_result, size - 2, size - 2);
-			printf("####CUSTOM####\n");
-			print_matrix(custom_result, size - 2, size - 2);
-		}
+
+		printf("####DEVITO####\n");
+		print_matrix(devito_result, size - 2, size - 2);
+		printf("####CUSTOM####\n");
+		print_matrix(custom_result, size - 2, size - 2);
+
 
 		max_error = 0;
 		cum_error = 0;
